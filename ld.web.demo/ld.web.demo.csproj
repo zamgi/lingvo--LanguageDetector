@@ -103,6 +103,14 @@
     <Content Include="[resources-4-appharbor.com]\language-models-bin\19-languages-%28ngram_2-cut_1%29-3.bin" />
     <Content Include="[resources-4-appharbor.com]\language-raw-source-data\drive.google.com.url" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="[resources-4-appharbor.com]\language-models-bin\19-languages-%28ngram_2-cut_1%29-4.bin" />
+    <Content Include="[resources-4-appharbor.com]\language-models-bin\19-languages-%28ngram_2-cut_1%29-5.bin" />
+    <Content Include="[resources-4-appharbor.com]\language-models-bin\19-languages-%28ngram_2-cut_1%29-6.bin" />
+    <Content Include="[resources-4-appharbor.com]\language-models-bin\19-languages-%28ngram_2-cut_1%29-7.bin" />
+    <Content Include="[resources-4-appharbor.com]\language-models-bin\19-languages-%28ngram_2-cut_1%29-8.bin" />
+    <Content Include="[resources-4-appharbor.com]\language-models-bin\19-languages-%28ngram_2-cut_1%29-9.bin" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
