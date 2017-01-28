@@ -1,0 +1,12 @@
+del "*.suo" /Q/A
+del "ld.web.demo\bin\*.pdb" /Q
+del "ld.web.demo\*.csproj.user" /Q
+rd "ld.web.demo\obj" /S/Q
+rd "LanguageDetector\bin" /S/Q
+rd "LanguageDetector\obj" /S/Q
+rd "ld.model-builder.console\bin" /S/Q
+rd "ld.model-builder.console\obj" /S/Q
+rd "ld.model-converter-txt-2-bin.console\bin" /S/Q
+rd "ld.model-converter-txt-2-bin.console\obj" /S/Q
+rd "ld.TestApp\bin" /S/Q
+rd "ld.TestApp\obj" /S/Q
