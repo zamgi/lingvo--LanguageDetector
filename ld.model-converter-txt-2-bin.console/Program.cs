@@ -9,14 +9,14 @@ using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-namespace lingvo.ld.modelconverter
-{
-    using lingvo.ld.MultiLanguage;
-    using lingvo.ld.MultiLanguage.modelconverter;
-    using lingvo.ld.v1;
+using lingvo.ld.MultiLanguage;
+using lingvo.ld.MultiLanguage.modelconverter;
+//using lingvo.ld.v1;
 
-    using BucketRef   = lingvo.ld.v1.ManyLanguageDetectorModel.BucketRef;
-    using BucketValue = lingvo.ld.v1.ManyLanguageDetectorModel.BucketValue;    
+namespace lingvo.ld.modelconverter
+{    
+    //using BucketRef   = lingvo.ld.v1.ManyLanguageDetectorModel.BucketRef;
+    //using BucketValue = lingvo.ld.v1.ManyLanguageDetectorModel.BucketValue;    
 
     /// <summary>
     /// 
@@ -60,8 +60,7 @@ namespace lingvo.ld.modelconverter
                 #region [.main routine.]
                 //---ConvertFromTxt2Bin();
 
-                //---
-                Test4SpeedModelBinaryNative();
+                //---Test4SpeedModelBinaryNative();
 
 #if DEBUG
                 Comare_ModelBinaryNative_And_ModelClassic(); 
@@ -85,11 +84,11 @@ namespace lingvo.ld.modelconverter
         private static void ConvertFromTxt2Bin()
         {
             var modelConfig = Config.Inst.GetModelConfig();
-            var model = TxtModelFactory.GetModelClassic( modelConfig );
-            var config = new Txt2BinModelConverterConfig()
+            var model       = TxtModelFactory.GetModelClassic( modelConfig );
+            var config      = new Txt2BinModelConverterConfig()
             {
-                Model = model,
-                OutputFileName = Config.Inst.OUTPUT_FILE_NAME,
+                Model                 = model,
+                OutputFileName        = Config.Inst.OUTPUT_FILE_NAME,
                 OutputFileSizeInBytes = Config.Inst.OUTPUT_FILE_SIZE_IN_BYTES, //1024 * 1024 * 99,
             };
             var outputFileNames = Txt2BinModelConverter.Run( config );
