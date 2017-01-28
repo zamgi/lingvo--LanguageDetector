@@ -11,13 +11,9 @@ using System.Threading;
 
 using lingvo.ld.MultiLanguage;
 using lingvo.ld.MultiLanguage.modelconverter;
-//using lingvo.ld.v1;
 
 namespace lingvo.ld.modelconverter
 {    
-    //using BucketRef   = lingvo.ld.v1.ManyLanguageDetectorModel.BucketRef;
-    //using BucketValue = lingvo.ld.v1.ManyLanguageDetectorModel.BucketValue;    
-
     /// <summary>
     /// 
     /// </summary>
@@ -84,7 +80,7 @@ namespace lingvo.ld.modelconverter
         private static void ConvertFromTxt2Bin()
         {
             var modelConfig = Config.Inst.GetModelConfig();
-            var model       = TxtModelFactory.GetModelClassic( modelConfig );
+            var model       = new MModelClassic( modelConfig );
             var config      = new Txt2BinModelConverterConfig()
             {
                 Model                 = model,
@@ -108,7 +104,7 @@ namespace lingvo.ld.modelconverter
             var modelConfig = Config.Inst.GetModelBinaryNativeConfig();
 
             var sw = Stopwatch.StartNew();
-            var model = TxtModelFactory.GetModelBinaryNative( modelConfig );
+            var model = new MModelBinaryNative( modelConfig );
             sw.Stop();
 
             Console.WriteLine( "elapsed: " + sw.Elapsed + ", record-count: " + model.RecordCount );
@@ -117,17 +113,15 @@ namespace lingvo.ld.modelconverter
             model.Dispose();
             model = null;
 
-            GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced );
-            GC.WaitForPendingFinalizers();
-            GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced );
+            GCCollect();
         }
 
 
         private static void Comare_ModelBinaryNative_And_ModelClassic()
         {
 #if DEBUG
-            using ( var model_1 = TxtModelFactory.GetModelBinaryNative( Config.Inst.GetModelBinaryNativeConfig() ) )
-            using ( var model_2 = TxtModelFactory.GetModelClassic( Config.Inst.GetModelConfig() ) )
+            using ( var model_1 = new MModelBinaryNative( Config.Inst.GetModelBinaryNativeConfig() ) )
+            using ( var model_2 = new MModelClassic( Config.Inst.GetModelConfig() ) )
             {
                 ModelComparer.Compare( model_1, model_2 );
             } 
@@ -135,23 +129,12 @@ namespace lingvo.ld.modelconverter
             throw (new NotImplementedException( "Allowed only in DEBUG mode" ));
 #endif
         }
-    }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    internal static class TxtModelFactory
-    {
-        public static MModelClassic GetModelClassic( MModelConfig config )
+        private static void GCCollect()
         {
-            var model = new MModelClassic( config );
-            return (model);
-        }
-
-        public static MModelBinaryNative GetModelBinaryNative( MModelBinaryNativeConfig config )
-        {
-            var model = new MModelBinaryNative( config );
-            return (model);
+            GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced );
+            GC.WaitForPendingFinalizers();
+            GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced );
         }
     }
 }

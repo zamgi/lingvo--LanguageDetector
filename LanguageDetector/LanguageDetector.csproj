@@ -17,7 +17,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;XLAT_WHITESPACE_CHARS XLAT_UPPER_INVARIANT_MAP XLAT_CHARTYPE_MAP</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;XLAT_WHITESPACE_CHARS XLAT_UPPER_INVARIANT_MAP XLAT_CHARTYPE_MAP XLAT_INTERNAL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -43,35 +43,36 @@
     <Compile Include="ILanguageDetector.cs" />
     <Compile Include="Infrastructure\Extensions.cs" />
     <Compile Include="Language\LanguageConfig.cs" />
-    <Compile Include="MultiLanguage\v2\Extensions.cs" />
-    <Compile Include="MultiLanguage\v2\Models\BinaryNative\MModelBinaryNative.cs" />
-    <Compile Include="MultiLanguage\v2\Models\BinaryNative\MModelBinaryNativeConfig.cs" />
-    <Compile Include="MultiLanguage\v2\Models\BinaryNative\Txt2BinModelConverter\Txt2BinModelConverter.cs" />
-    <Compile Include="MultiLanguage\v2\Models\MModelConfig.cs" />
-    <Compile Include="MultiLanguage\v2\Models\ModelLoadTypeEnum.cs" />
-    <Compile Include="MultiLanguage\v2\Models\MModelMMFBase.cs" />
-    <Compile Include="MultiLanguage\v2\Models\NativeTextMMF\MModelDictionaryNativeMMF.cs" />
-    <Compile Include="MultiLanguage\v2\Models\NativeTextMMF\DictionaryNative\DictionaryNative.cs" />
-    <Compile Include="MultiLanguage\v2\Models\NativeTextMMF\DictionaryNative\Internals\HashHelpers.cs" />
-    <Compile Include="MultiLanguage\v2\IMModel.cs" />
-    <Compile Include="MultiLanguage\v1\DictionaryNative\DictionaryNative.cs" />
-    <Compile Include="MultiLanguage\v1\ManyLanguageDetectorModelConfig.v1.cs" />
-    <Compile Include="MultiLanguage\v1\Infrastructure\RucksackPackingHalfSplitter.cs" />
-    <Compile Include="MultiLanguage\v2\MDetector.cs" />
-    <Compile Include="MultiLanguage\v2\Models\NativeTextMMF\RucksackPacking\RucksackPackingHalfSplitter.cs" />
-    <Compile Include="MultiLanguage\v2\Models\Buckets.cs" />
-    <Compile Include="MultiLanguage\v2\Models\ClassicMMF\MModelClassicMMF.cs" />
-    <Compile Include="MultiLanguage\v2\Models\Classic\MModelClassic.cs" />
-    <Compile Include="MultiLanguage\v2\Models\NativeTextMMF\MModelNativeTextMMFBase.cs" />
-    <Compile Include="MultiLanguage\v2\Models\NativeTextMMF\MModelNativeTextMMF.cs" />
+    <Compile Include="MultiLanguage\Extensions.cs" />
+    <Compile Include="MultiLanguage\Models\BinaryNative\MDetectorBinaryNative.cs" />
+    <Compile Include="MultiLanguage\Models\BinaryNative\MModelBinaryNative.cs" />
+    <Compile Include="MultiLanguage\Models\BinaryNative\MModelBinaryNativeConfig.cs" />
+    <Compile Include="MultiLanguage\Models\BinaryNative\Txt2BinModelConverter\Txt2BinModelConverter.cs" />
+    <Compile Include="MultiLanguage\Models\MModelConfig.cs" />
+    <Compile Include="MultiLanguage\Models\ModelLoadTypeEnum.cs" />
+    <Compile Include="MultiLanguage\Models\MModelMMFBase.cs" />
+    <Compile Include="MultiLanguage\Models\NativeTextMMF\MModelDictionaryNativeMMF.cs" />
+    <Compile Include="MultiLanguage\Models\NativeTextMMF\DictionaryNative\DictionaryNative.cs" />
+    <Compile Include="MultiLanguage\Models\NativeTextMMF\DictionaryNative\Internals\HashHelpers.cs" />
+    <Compile Include="MultiLanguage\IMModel.cs" />
+    <None Include="MultiLanguage\%28v1%29\DictionaryNative\%28DictionaryNative.cs%29" />
+    <None Include="MultiLanguage\%28v1%29\%28ManyLanguageDetectorModelConfig.v1.cs%29" />
+    <None Include="MultiLanguage\%28v1%29\Infrastructure\%28RucksackPackingHalfSplitter.cs%29" />
+    <Compile Include="MultiLanguage\MDetector.cs" />
+    <Compile Include="MultiLanguage\Models\NativeTextMMF\RucksackPacking\RucksackPackingHalfSplitter.cs" />
+    <Compile Include="MultiLanguage\Models\Buckets.cs" />
+    <Compile Include="MultiLanguage\Models\ClassicMMF\MModelClassicMMF.cs" />
+    <Compile Include="MultiLanguage\Models\Classic\MModelClassic.cs" />
+    <Compile Include="MultiLanguage\Models\NativeTextMMF\MModelNativeTextMMFBase.cs" />
+    <Compile Include="MultiLanguage\Models\NativeTextMMF\MModelNativeTextMMF.cs" />
     <Compile Include="RussianLanguage\IRModel.cs" />
     <Compile Include="Tokenizing\StringsHelper.cs" />
     <Compile Include="Language\Language.cs" />
-    <Compile Include="MultiLanguage\v1\LanguageConfigAdv.cs" />
+    <None Include="MultiLanguage\%28v1%29\%28LanguageConfigAdv.cs%29" />
     <Compile Include="Language\LanguageInfo.cs" />
-    <Compile Include="MultiLanguage\v1\ManyLanguageDetector.v1.cs" />
+    <None Include="MultiLanguage\%28v1%29\%28ManyLanguageDetector.v1.cs%29" />
     <Compile Include="MultiLanguage\MDetectorConfig.cs" />
-    <Compile Include="MultiLanguage\v1\ManyLanguageDetectorModel.v1.cs" />
+    <None Include="MultiLanguage\%28v1%29\%28ManyLanguageDetectorModel.v1.cs%29" />
     <None Include="Infrastructure\%28Number.cs%29" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RussianLanguage\RDetectorConfig.cs" />

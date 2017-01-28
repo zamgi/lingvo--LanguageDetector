@@ -10,28 +10,29 @@ namespace lingvo.ld.MultiLanguage
     /// <summary>
     /// 
     /// </summary>
-    unsafe public sealed class MDetector : ILanguageDetector
+    unsafe public class MDetector : ILanguageDetector
     {
         #region [.private field's.]
-        private const char      SPACE                              = ' ';
-        private const int       THREE_LANGUAGE                     = 3;
-        private const int       LANGUAGES_COUNT                    = (int) Language.LENGTH;
-        private const float     NULL_WEIGHT                        = 0.0f;        
-        private const int       NGRAM_STRINGBUILDER_DEFAULT_LENGTH = 100;
-        private static readonly LanguageInfo[] LANGUAGEINFO_EMPTY  = new LanguageInfo[ 0 ];
+        protected const  char     SPACE                              = ' ';
+        private   const  int      THREE_LANGUAGE                     = 3;
+        private   const  int      LANGUAGES_COUNT                    = (int) Language.LENGTH;
+        private   const  float    NULL_WEIGHT                        = 0.0f;        
+        private   const  int      NGRAM_STRINGBUILDER_DEFAULT_LENGTH = 100;
+        private   static readonly LanguageInfo[] LANGUAGEINFO_EMPTY  = new LanguageInfo[ 0 ];
 
-        private readonly IMModel             _Model;
+        protected readonly IMModel            _Model;
+        protected float*                      _WeightsPtrBase;
+        protected int*                        _TermCountByLanguagePtrBase;
+        protected int                         _TermCount;
+        protected int                         _TermCountDetecting;
+        protected readonly StringBuilder      _NgramStringBuilder;
+        protected string                      _TermPrevious;
+
         private readonly mld_tokenizer        _Tokenizer;
         private Action< string >              _ProcessTermCallbackAction;
         private readonly float[]              _Weights;
         private readonly int[]                _TermCountByLanguage;
         private readonly List< LanguageInfo > _LanguageInfos;
-        private float*                        _WeightsPtrBase;
-        private int*                          _TermCountByLanguagePtrBase;
-        private int                           _TermCount;
-        private int                           _TermCountDetecting;
-        private readonly StringBuilder        _NgramStringBuilder;
-        private string                        _TermPrevious;
         #endregion
 
         #region [.ctor().]
@@ -225,7 +226,7 @@ namespace lingvo.ld.MultiLanguage
             }
         }
 
-        unsafe private void ProcessTermCallback( string term )
+        unsafe protected virtual void ProcessTermCallback( string term )
         {
             //-1-grams-
             var termDetecting = 0;

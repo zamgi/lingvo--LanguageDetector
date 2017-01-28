@@ -10,7 +10,6 @@ using Newtonsoft.Json;
 using lingvo.urls;
 using lingvo.ld.MultiLanguage;
 using lingvo.ld.RussianLanguage;
-//using lingvo.ld.v1;
 
 namespace lingvo.ld
 {
