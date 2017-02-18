@@ -4,33 +4,32 @@
 
 <div style="padding: 20px">
                         <p>
-						    Automatic identification of language - an important first step of automatic text processing process.
+			    Automatic identification of language - an important first step of automatic text processing process.
                             Wrong definition of language posts will lead to its incorrect handling.
                             If the problem seeming simplicity of its practical implementation is not so obvious.
                             This is particularly evident in the processing of short messages, such as the tweets.
                             <br>
-						    Firstly, there is a set of related languages ​​that use alphabets close and similar language, such as Russian, Byelorussian, Ukrainian, Bulgarian, Serbian, and so forth.
+			    Firstly, there is a set of related languages ​​that use alphabets close and similar language, such as Russian, Byelorussian, Ukrainian, Bulgarian, Serbian, and so forth.
                             In such cases, solutions based on simple statistics words, letters or combinations thereof, do not work well.
                             For example, a simple sentence, "Mom soap frame" on the Bulgarian will be <i> «shirt izmiva frame» </i>.
                             Two words of this sentence on the Bulgarian and Russian are, though in a somewhat different meaning.
                             The system can easily recognize this text as a Russian.
                             <br>
-						    Secondly, the same spelling of words may occur in unrelated languages.
+			    Secondly, the same spelling of words may occur in unrelated languages.
                             And if these words frequency, the percentage may be quite large.
                             For example, English is sufficient frequency preposition <i> «on» </i> in the Finnish language is a verb olla (be) in the third person singular, and, accordingly, the word at the same frequency.
                             Therefore, the proposal <i>"sauna on sijoitettu metsään"</i> system can recognize as english.
-						    Conversely, the proposal <i>"sauna on wheels"</i>, as the Finnish.
+			    Conversely, the proposal <i>"sauna on wheels"</i>, as the Finnish.
                             </p><p>
-						    The presented system is devoid of these shortcomings, and works quite well with the related languages.
-						    <br>
-						    The demo version can be identified as languages with Cyrillic alphabet and using the Latin alphabet.                            
-						    <br>
-						    The output shows the probability distribution of messages by language, normalized to 100%.
-						    </p><p>
-						    Accuracy depends on the definition of language group and the proximity of recognizable languages.
+				The presented system is devoid of these shortcomings, and works quite well with the related languages.
+			        <br>
+				The demo version can be identified as languages with Cyrillic alphabet and using the Latin alphabet.                                   <br>
+				The output shows the probability distribution of messages by language, normalized to 100%.
+			    </p><p>
+				Accuracy depends on the definition of language group and the proximity of recognizable languages.
                             On the accuracy of an average of about 96-97%.
-						    <br>
-						    <b>The speed of the unit - about 10 MB/sec text in double-byte character set.</b>
+				<br>
+				The speed of the unit about 10 MB/sec.
                         </p>			
                     </div>
 		    
