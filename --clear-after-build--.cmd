@@ -1,6 +1,6 @@
-del "*.suo" /Q/A
+del "*.suo" /S/Q/F/A
+del "*.csproj.user" /S/Q/F/A
 del "ld.web.demo\bin\*.pdb" /Q
-del "ld.web.demo\*.csproj.user" /Q
 rd "ld.web.demo\obj" /S/Q
 rd "LanguageDetector\bin" /S/Q
 rd "LanguageDetector\obj" /S/Q
