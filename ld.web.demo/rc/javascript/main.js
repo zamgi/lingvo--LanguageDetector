@@ -5,6 +5,8 @@ $(document).ready(function () {
         var len = _len.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
         var $textLength = $("#textLength");
         $textLength.html("length of the text: " + len + " characters");
+        if (MAX_INPUTTEXT_LENGTH < _len) $textLength.addClass("max-inputtext-length");
+        else                             $textLength.removeClass("max-inputtext-length");
     };
     var getText = function( $text ) {
         var text = trim_text( $text.val().toString() );
@@ -13,10 +15,33 @@ $(document).ready(function () {
             $text.focus();
             return (null);
         }
+
+        if (text.length > MAX_INPUTTEXT_LENGTH) {
+            if (!confirm('Exceeded the recommended limit ' + MAX_INPUTTEXT_LENGTH + ' characters (for ' + (text.length - MAX_INPUTTEXT_LENGTH) + ' characters).\r\nText will be truncated, continue?')) {
+                return (null);
+            }
+            text = text.substr(0, MAX_INPUTTEXT_LENGTH);
+            $text.val(text);
+            $text.change();
+        }
         return (text);
     };
 
     $("#text").focus(textOnChange).change(textOnChange).keydown(textOnChange).keyup(textOnChange).select(textOnChange).focus();
+
+    (function () {
+        function isGooglebot() {
+            return (navigator.userAgent.toLowerCase().indexOf('googlebot/') != -1);
+        };
+        if (isGooglebot())
+            return;
+
+        var text = localStorage.getItem(LOCALSTORAGE_TEXT_KEY);
+        if (!text || !text.length) {
+            text = DEFAULT_TEXT;
+        }
+        $('#text').text(text).focus();
+    })();
 
     $('#mainPageContent').on('click', '#processButton', function () {
         if($(this).hasClass('disabled')) return (false);
@@ -25,6 +50,11 @@ $(document).ready(function () {
         if (!text) return (false);   
         
         processing_start();
+        if (text != DEFAULT_TEXT) {
+            localStorage.setItem(LOCALSTORAGE_TEXT_KEY, text);
+        } else {
+            localStorage.removeItem(LOCALSTORAGE_TEXT_KEY);
+        }
 
         $.ajax({
             type: "POST",
