@@ -1,5 +1,9 @@
+﻿$(document).ready(function () {
+    var MAX_INPUTTEXT_LENGTH  = 10000,
+        LOCALSTORAGE_TEXT_KEY = 'udl-text',
+        DEFAULT_TEXT          = 'Захворванне абумоўлена губчастым перараджэннем галаўны мозг галаўнога мозга. ' +
+'У жывёл найбольш вылучаюць спангіяформную энцэфалапатыю буйной рагатай жывёлы т.зв. шаленства кароў ад мяса якіх адбываецца заражэнне людзей скрыты перыяд у людзей - гадоў.';
 
-$(document).ready(function () {
     var textOnChange = function () {
         var _len = $("#text").val().length; 
         var len = _len.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
