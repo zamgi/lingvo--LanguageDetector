@@ -88,7 +88,7 @@
             },
             error: function () {
                 processing_end();
-                $('.result-info').text('server error');
+                $('.result-info').addClass('error').text('server error');
             }
         });
         
