@@ -127,7 +127,9 @@ namespace lingvo.tokenizing
             resultCyrillicLettersPercent = 100;
 #endif            
             if ( cyrillicLettersPercent <= 0 )
+            {
                 return (true);
+            }                
 
             var len = text.Length;
             var rate = (cyrillicLettersPercent / 100.0f);

@@ -154,7 +154,7 @@ namespace lingvo.ld.RussianLanguage
                 return (NULL_WEIGHT);
             }
 
-            var terms = _Tokenizer.run( text );
+            var terms = _Tokenizer.Run( text );
             if ( terms.Count == 0 )
             {
                 return (NULL_WEIGHT);

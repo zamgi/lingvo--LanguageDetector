@@ -152,7 +152,7 @@ namespace lingvo.ld.MultiLanguage
                     termCountByLanguagePtrBase[ i ] = 0;
                 }
 
-                _Tokenizer.run( text, _ProcessTermCallbackAction );
+                _Tokenizer.Run( text, _ProcessTermCallbackAction );
                 _TermPrevious = null;
 
                 for ( var i = 0; i < LANGUAGES_COUNT; i++ )

@@ -369,7 +369,7 @@ namespace lingvo.ld.modelbuilder
                 {
                     for ( var line = sr.ReadLine(); line != null; line = sr.ReadLine() )
                     {
-                        tokenizer.run( line, processWordAction );
+                        tokenizer.Run( line, processWordAction );
                     }
 
                     if ( !_tfidf.CurrentDocumentHasWords )
@@ -817,7 +817,7 @@ namespace lingvo.ld.modelbuilder
                 {
                     for ( var line = sr.ReadLine(); line != null; line = sr.ReadLine() )
                     {
-                        tokenizer.run( line, processWordAction );
+                        tokenizer.Run( line, processWordAction );
                     }
 
                     ProcessLastAction();
