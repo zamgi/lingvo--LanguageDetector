@@ -8,11 +8,11 @@ using System.Xml.Linq;
 using lingvo.core;
 
 namespace lingvo.urls
-{    
+{
     /// <summary>
     /// 
     /// </summary>
-    public sealed class url_t
+    public class url_t
     {
         public string  value;
         public int     startIndex;
@@ -68,7 +68,7 @@ namespace lingvo.urls
     /// <summary>
     /// 
     /// </summary>
-    public sealed class UrlDetectorModel
+    public class UrlDetectorModel
     {
         public UrlDetectorModel( string urlDetectorResourcesXmlFilename )
         {
@@ -122,7 +122,7 @@ namespace lingvo.urls
     /// <summary>
     /// 
     /// </summary>
-    public sealed class UrlDetectorConfig
+    public class UrlDetectorConfig
     {
         public UrlDetectorConfig()
         {
@@ -182,6 +182,7 @@ namespace lingvo.urls
         private char*                         _Ptr;  //current pointer into text
         #endregion
 
+        #region [.ctor().]
         public UrlDetector( UrlDetectorConfig config )
         {
             _ExtractValue = (config.UrlExtractMode == UrlExtractModeEnum.ValueAndPosition);
@@ -235,6 +236,7 @@ namespace lingvo.urls
                 _UriSchBufferPtrBase = null;
             }
         }
+        #endregion
 
         unsafe public List< url_t > AllocateUrls( string text )
         {
@@ -256,12 +258,9 @@ namespace lingvo.urls
                             {
                                 _Urls.Add( _Url.create_copy() );
                             }
-                            else
+                            else if ( TryAllocateUrl_ByFirstLevelDomain( ALLOCATEURL_BYFIRSTLEVELDOMAIN_MAXRECURSIONNESTING ) )
                             {
-                                if ( TryAllocateUrl_ByFirstLevelDomain( ALLOCATEURL_BYFIRSTLEVELDOMAIN_MAXRECURSIONNESTING ) )
-                                {
-                                    _Urls.Add( _Url.create_copy() );
-                                }
+                                _Urls.Add( _Url.create_copy() );
                             }
                         }
                         #endregion
@@ -286,6 +285,52 @@ var xxx = new string( _Ptr - 25, 0, 100 );
             }
 
             return (_Urls);
+        }
+
+        unsafe public List< url_struct_t > AllocateUrls( char* _base )
+        {
+            _Urlstructs.Clear();
+
+            _BASE = _base;
+
+            for ( _Ptr = _BASE; *_Ptr != '\0'; _Ptr++ )
+            {
+                switch ( *_Ptr )
+                {
+                    //-dot-
+                    case '.':
+                    #region
+                    {
+                        if ( TryAllocateUrl_ByWWW() )
+                        {
+                            _Urlstructs.Add( _Url.to_url_struct( _base ) );
+                        }
+                        else if ( TryAllocateUrl_ByFirstLevelDomain( ALLOCATEURL_BYFIRSTLEVELDOMAIN_MAXRECURSIONNESTING ) )
+                        {
+                            _Urlstructs.Add( _Url.to_url_struct( _base ) );
+                        }
+                    }
+                    #endregion
+                    break;
+
+                    //-colon-
+                    case ':':
+                    #region
+                    {
+#if DEBUG
+var xxx = new string( _Ptr - 25, 0, 100 );
+#endif
+                        if ( TryAllocateUrl_ByURIschemes() )
+                        {
+                            _Urlstructs.Add( _Url.to_url_struct( _base ) );
+                        }
+                    }
+                    #endregion
+                    break;
+                }
+            }
+
+            return (_Urlstructs);
         }
 
         unsafe public void InitializeAllocate( char* _base )
@@ -454,55 +499,6 @@ var xxx = new string( _Ptr - 25, 0, 100 );
             #endregion
         }
 
-        unsafe public List< url_struct_t > AllocateUrls( char* _base )
-        {
-            _Urlstructs.Clear();
-
-            _BASE = _base;
-
-            for ( _Ptr = _BASE; *_Ptr != '\0'; _Ptr++ )
-            {
-                switch ( *_Ptr )
-                {
-                    //-dot-
-                    case '.':
-                    #region
-                    {
-                        if ( TryAllocateUrl_ByWWW() )
-                        {
-                            _Urlstructs.Add( _Url.to_url_struct( _base ) );
-                        }
-                        else
-                        {
-                            if ( TryAllocateUrl_ByFirstLevelDomain( ALLOCATEURL_BYFIRSTLEVELDOMAIN_MAXRECURSIONNESTING ) )
-                            {
-                                _Urlstructs.Add( _Url.to_url_struct( _base ) );
-                            }
-                        }
-                    }
-                    #endregion
-                    break;
-
-                    //-colon-
-                    case ':':
-                    #region
-                    {
-#if DEBUG
-var xxx = new string( _Ptr - 25, 0, 100 );
-#endif
-                        if ( TryAllocateUrl_ByURIschemes() )
-                        {
-                            _Urlstructs.Add( _Url.to_url_struct( _base ) );
-                        }
-                    }
-                    #endregion
-                    break;
-                }
-            }
-
-            return (_Urlstructs);
-        }
-
         /// <summary>
         /// 
         /// </summary>
@@ -560,7 +556,7 @@ var xxx = new string( left_ptr - 25, 0, 75 );
             var right_len = 0;
             for ( _Ptr++; ; right_len++ )
             {
-                ch = *(_Ptr + right_len);
+                ch = _Ptr[ right_len ];
                 //char - '\0' - not marked as CharType.IsLetter
                 #region
                 /*if ( ch == '\0' )
@@ -569,8 +565,7 @@ var xxx = new string( left_ptr - 25, 0, 75 );
                 }
                 */
                 #endregion
-                var ct = *(_CTM + ch);
-                if ( (ct & CharType.IsLetter) != CharType.IsLetter )
+                if ( (_CTM[ ch ] & CharType.IsLetter) != CharType.IsLetter )
                 {
                     break;
                 }
@@ -581,7 +576,7 @@ var xxx = new string( left_ptr - 25, 0, 75 );
                 }
 
                 //to upper
-                *(_FldBufferPtrBase + right_len) = *(_UIM + ch);
+                _FldBufferPtrBase[ right_len ] = _UIM[ ch ];
             }
 
             if ( right_len == 0 )
@@ -621,6 +616,11 @@ var xxx1 = new string( _Ptr - 25, 0, 75 );
 
             #region [.find-url-end-on-the-left.]
             var left_len = FindUrlEndOnTheLeft( 1 );
+            //skip url with empty left-part
+            if ( left_len == 0 )
+            {
+                return (false);
+            }
             #endregion
 
             #region [.create url_t.]
@@ -656,8 +656,7 @@ var xxx = new string( left_ptr - 25, 0, 75 );
                 }
 
                 var ch = *p;
-                var ct = *(_CTM + ch);
-                if ( (ct & CharType.IsURIschemesChar) != CharType.IsURIschemesChar )
+                if ( (_CTM[ ch ] & CharType.IsURIschemesChar) != CharType.IsURIschemesChar )
                 {
                     break;
                 }
@@ -668,7 +667,7 @@ var xxx = new string( left_ptr - 25, 0, 75 );
                 }
 
                 //to upper
-                *(_UriSchBufferPtrBase + left_len) = *(_UIM + ch);
+                _UriSchBufferPtrBase[ left_len ] = _UIM[ ch ];
             }
 
             if ( left_len == 0 )
@@ -713,7 +712,7 @@ var xxx = new string( left_ptr - 25, 0, 75 );
             var right_len = offsetToRight;
             for ( ; ; right_len++ )
             {
-                var ch = *(_Ptr + right_len);
+                var ch = _Ptr[ right_len ];
                 //char - '\0' - marked as CharType.IsUrlBreak
                 #region
                 /*if ( ch == '\0' )
@@ -723,29 +722,29 @@ var xxx = new string( left_ptr - 25, 0, 75 );
                 }*/
                 #endregion
 
-                var ct = *(_CTM + ch);
-                if ( (ct & CharType.IsUrlBreak) == CharType.IsUrlBreak )
+                if ( (_CTM[ ch ] & CharType.IsUrlBreak) == CharType.IsUrlBreak )
                 {
                     for ( right_len--; 0 <= right_len; right_len-- )
                     {
-                        ch = *(_Ptr + right_len);
+                        ch = _Ptr[ right_len ];
                         if ( ch == '/' )
                             break;
-                        ct = *(_CTM + ch);
-                        if ( (ct & CharType.IsPunctuation) != CharType.IsPunctuation )
+                        if ( (_CTM[ ch ] & CharType.IsPunctuation) != CharType.IsPunctuation )
                             break;
                     }
                     break;
 
+                    #region commented
                     /*
                     right_len--;
                     #region [.if ends with dot.]
-                    ch = *(_Ptr + right_len);
+                    ch = _Ptr[ right_len ];
                     if ( xlat.IsSentEndChar( ch ) )
                         right_len--;
                     #endregion
                     break;
-                    */
+                    */ 
+                    #endregion
                 }
             }
             return ((right_len > 0) ? right_len : 0);
@@ -761,30 +760,36 @@ var xxx = new string( left_ptr - 25, 0, 75 );
                 var p = _Ptr - left_len;
                 if ( p <= _BASE )
                 {
-                    if ( p == _BASE )
+                    while ( p < _BASE )
                     {
-                        for ( /*left_len--*/; 0 <= left_len; left_len-- )
-                        {
-                            var ch = *(_Ptr - left_len);
-                            if ( ch == '/' )
-                                break;
-                            var _ct = *(_CTM + ch);
-                            if ( (_ct & CharType.IsPunctuation) != CharType.IsPunctuation )
-                                break;
-                        }
+                        p++;
+                        left_len--;
+                    }
+
+                    for ( /*left_len--*/; 0 <= left_len; left_len-- )
+                    {
+                        var ch = *(_Ptr - left_len);
+                        if ( ch == '/' )
+                            break;
+                        var ct = _CTM[ ch ];
+                        if ( (ct & CharType.IsWhiteSpace) == CharType.IsWhiteSpace )
+                            continue;
+                        if ( (ct & CharType.IsPunctuation) != CharType.IsPunctuation )
+                            break;
                     }
                     break;
                 }
 
-                var ct = *(_CTM + *p);
-                if ( (ct & CharType.IsUrlBreak) == CharType.IsUrlBreak )
+                if ( (_CTM[ *p ] & CharType.IsUrlBreak) == CharType.IsUrlBreak )
                 {
                     for ( left_len--; 0 <= left_len; left_len-- )
                     {
                         var ch = *(_Ptr - left_len);
                         if ( ch == '/' )
                             break;
-                        ct = *(_CTM + ch);
+                        var ct = _CTM[ ch ];
+                        if ( (ct & CharType.IsWhiteSpace) == CharType.IsWhiteSpace )
+                            continue;
                         if ( (ct & CharType.IsPunctuation) != CharType.IsPunctuation )
                             break;
                     }
@@ -797,7 +802,7 @@ var xxx = new string( left_ptr - 25, 0, 75 );
 }
 
 namespace lingvo.urls
-{   
+{
     /// <summary>
     /// 
     /// </summary>
