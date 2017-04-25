@@ -2,6 +2,7 @@ del "*.suo" /S/Q/F/A
 del "*.csproj.user" /S/Q/F/A
 del "ld.web.demo\bin\*.pdb" /Q
 rd "ld.web.demo\obj" /S/Q
+rd "ld.web.demo\(logs)" /S/Q
 rd "LanguageDetector\bin" /S/Q
 rd "LanguageDetector\obj" /S/Q
 rd "ld.model-builder.console\bin" /S/Q
