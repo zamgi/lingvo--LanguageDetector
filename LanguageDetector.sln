@@ -1,10 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageDetector", "LanguageDetector\LanguageDetector.csproj", "{D80B4886-96C3-4C5B-9DC4-72BBA3328FC2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "[lib]", "[lib]", "{8A360507-2F7E-4AB2-920B-4EB2D081DD50}"
 	ProjectSection(SolutionItems) = preProject
+		[lib]\log4net.dll = [lib]\log4net.dll
 		[lib]\Newtonsoft.Json.dll = [lib]\Newtonsoft.Json.dll
 	EndProjectSection
 EndProject
