@@ -136,5 +136,5 @@
         } else {
             processingTickCount = 1;
         }
-    }
+    };
 });
