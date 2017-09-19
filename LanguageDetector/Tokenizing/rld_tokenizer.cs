@@ -136,7 +136,7 @@ namespace lingvo.tokenizing
             var cyrillicLettersThreshold = (int) (rate * len); //Convert.ToInt32( rate * len );
             var cyrillicLettersCount = 0;
             var nonLettersCount = 0;
-            fixed ( char*   _base = text )
+            fixed ( char* _base = text )
             fixed ( CharType* ctm = xlat.CHARTYPE_MAP )
             {                
                 for ( int i = 0; i < len; i++ ) //for ( var ptr = _base; *ptr != 0; ptr++ )
