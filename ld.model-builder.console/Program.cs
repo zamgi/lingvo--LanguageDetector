@@ -34,7 +34,7 @@ namespace lingvo
 
             NGARMS        = (NGramsEnum)       Enum.Parse( typeof(NGramsEnum)      , ConfigurationManager.AppSettings[ "NGARMS"        ], true );
             CUT_THRESHOLD = (CutThresholdEnum) Enum.Parse( typeof(CutThresholdEnum), ConfigurationManager.AppSettings[ "CUT_THRESHOLD" ], true );
-		
+        
             _INPUT_FOLDERS_BY_LANGUAGE_ = ConfigurationManager.AppSettings[ "INPUT_FOLDERS_BY_LANGUAGE" ];
 
             _CLEAR_CYRILLICS_CHARS_BY_LANGUAGE_ = ConfigurationManager.AppSettings[ "CLEAR_CYRILLICS_CHARS_BY_LANGUAGE" ];        
@@ -52,20 +52,20 @@ namespace lingvo
             #region [.INPUT_FOLDERS_BY_LANGUAGE.]
             var inputFoldersByLanguage = _INPUT_FOLDERS_BY_LANGUAGE_.Split( new[] { ';' }, StringSplitOptions.RemoveEmptyEntries );
             for ( var i = 0; i < inputFoldersByLanguage.Length; i++ )
-			{
+            {
                 var item = inputFoldersByLanguage[ i ].Trim( ' ', '\r', '\n', '\t' );
                 inputFoldersByLanguage[ i ] = item;
-			}
+            }
             INPUT_FOLDERS_BY_LANGUAGE = inputFoldersByLanguage.Where( item => !string.IsNullOrWhiteSpace( item ) ).ToArray();
             #endregion
 
             #region [.CLEAR_CYRILLICS_CHARS_BY_LANGUAGE.]
             var clearCyrillicsCharsByLanguage = _CLEAR_CYRILLICS_CHARS_BY_LANGUAGE_.Split( new[] { ';' }, StringSplitOptions.RemoveEmptyEntries );
             for ( var i = 0; i < clearCyrillicsCharsByLanguage.Length; i++ )
-			{
+            {
                 var item = clearCyrillicsCharsByLanguage[ i ].Trim( ' ', '\r', '\n', '\t' );
                 clearCyrillicsCharsByLanguage[ i ] = item;
-			}
+            }
             CLEAR_CYRILLICS_CHARS_BY_LANGUAGE = clearCyrillicsCharsByLanguage.Where( item => !string.IsNullOrWhiteSpace( item ) ).ToArray();
             #endregion
 
@@ -117,15 +117,15 @@ namespace lingvo
             }
         }
 
-		public readonly bool USE_BOOST_PRIORITY;
+        public readonly bool USE_BOOST_PRIORITY;
         public readonly BuildModeEnum BUILD_MODE;
 
         public readonly string URL_DETECTOR_RESOURCES_XML_FILENAME;
 
-		public readonly NGramsEnum       NGARMS;
-		public readonly CutThresholdEnum CUT_THRESHOLD;
-		
-		public readonly string[] INPUT_FOLDERS_BY_LANGUAGE;
+        public readonly NGramsEnum       NGARMS;
+        public readonly CutThresholdEnum CUT_THRESHOLD;
+        
+        public readonly string[] INPUT_FOLDERS_BY_LANGUAGE;
         private string _INPUT_FOLDERS_BY_LANGUAGE_;
 
         public readonly string[] CLEAR_CYRILLICS_CHARS_BY_LANGUAGE;
@@ -149,16 +149,16 @@ namespace lingvo.ld.modelbuilder
     /// </summary>
     internal static class Program
     {
-		private static IEnumerable< Tuple< NGramsEnum, CutThresholdEnum > > GetProcessParams()
-		{
-			for ( var ngarms = NGramsEnum.ngram_1; ngarms <= NGramsEnum.ngram_2; ngarms++ )
-			{
-				for ( var d = CutThresholdEnum.cut_1; d <= CutThresholdEnum.cut_2; d++ )
-				{
-					yield return (Tuple.Create( ngarms, d ));
-				}
-			}
-		}
+        private static IEnumerable< Tuple< NGramsEnum, CutThresholdEnum > > GetProcessParams()
+        {
+            for ( var ngarms = NGramsEnum.ngram_1; ngarms <= NGramsEnum.ngram_2; ngarms++ )
+            {
+                for ( var d = CutThresholdEnum.cut_1; d <= CutThresholdEnum.cut_2; d++ )
+                {
+                    yield return (Tuple.Create( ngarms, d ));
+                }
+            }
+        }
 
         private static void Main( string[] args )
         {
@@ -172,8 +172,8 @@ namespace lingvo.ld.modelbuilder
                 switch ( Config.Inst.BUILD_MODE )
                 {
                     case BuildModeEnum.single_model:
-				Console.WriteLine( "NGARMS                   : '" + Config.Inst.NGARMS  + "'" );
-                Console.WriteLine( "CUT_THRESHOLD            : '" + Config.Inst.CUT_THRESHOLD + "'" );				
+                Console.WriteLine( "NGARMS                   : '" + Config.Inst.NGARMS  + "'" );
+                Console.WriteLine( "CUT_THRESHOLD            : '" + Config.Inst.CUT_THRESHOLD + "'" );                
                     break;
                 }
                 Console.WriteLine( "INPUT_FOLDERS_BY_LANGUAGE: '" + string.Join( "'; '", Config.Inst.INPUT_FOLDERS_BY_LANGUAGE ) + "'" );
@@ -184,17 +184,17 @@ namespace lingvo.ld.modelbuilder
                 Console.WriteLine( "USE_PORTION              : '" + Config.Inst.USE_PORTION + "'" );
                 if ( Config.Inst.USE_PORTION )
                 Console.WriteLine( "MAX_PORTION_SIZE         : '" + Config.Inst.MAX_PORTION_SIZE + "'" );
-				Console.WriteLine("----------------------------------------------" + Environment.NewLine);
+                Console.WriteLine("----------------------------------------------" + Environment.NewLine);
                 #endregion
 
                 #region [.use boost priority.]
                 if ( Config.Inst.USE_BOOST_PRIORITY )
-				{
-					var pr = Process.GetCurrentProcess();
-					pr.PriorityClass              = ProcessPriorityClass.RealTime;
-					pr.PriorityBoostEnabled       = true;
-					Thread.CurrentThread.Priority = ThreadPriority.Highest;
-				}
+                {
+                    var pr = Process.GetCurrentProcess();
+                    pr.PriorityClass              = ProcessPriorityClass.RealTime;
+                    pr.PriorityBoostEnabled       = true;
+                    Thread.CurrentThread.Priority = ThreadPriority.Highest;
+                }
                 #endregion
 
                 #region [.url-detector.]
@@ -249,7 +249,7 @@ namespace lingvo.ld.modelbuilder
                         };
                         try
                         {
-						    var sw = Stopwatch.StartNew();
+                            var sw = Stopwatch.StartNew();
                             if ( Config.Inst.USE_PORTION )
                             {
                                 Build_UsePortion( bp );
@@ -258,7 +258,7 @@ namespace lingvo.ld.modelbuilder
                             {
                                 Build( bp );
                             }
-						    sw.Stop();
+                            sw.Stop();
 
                             Console.WriteLine( "'" + bp.Ngrams + "; " + bp.CutThreshold + "' - success, elapsed: " + sw.Elapsed + Environment.NewLine );
                         }
@@ -323,8 +323,8 @@ namespace lingvo.ld.modelbuilder
                 BuildSingleLanguage( bp, inputFolder4Language );
             }
         }
-		private static void BuildSingleLanguage( build_params_t bp, string inputFolder4Language )
-		{
+        private static void BuildSingleLanguage( build_params_t bp, string inputFolder4Language )
+        {
             #region [.-0-.]
             Console.WriteLine( "start process language-folder: '/" + inputFolder4Language + "/'..." );
 
@@ -350,9 +350,9 @@ namespace lingvo.ld.modelbuilder
                     _tfidf.AddDocumentWord( word );
                 };
             }
-			#endregion
+            #endregion
 
-			#region [.-1-.]
+            #region [.-1-.]
             var folder4Language = Path.Combine( bp.InputBaseFolder, inputFolder4Language );
             var fileNames = new List< string >();
             var fis = from fileName in Directory.EnumerateFiles( folder4Language )
@@ -386,7 +386,7 @@ namespace lingvo.ld.modelbuilder
                 text = null;
                 GC.Collect();
 
-				_tfidf.AddDocument( words );
+                _tfidf.AddDocument( words );
                 words = null;
                 GC.Collect();
                 */
@@ -396,11 +396,11 @@ namespace lingvo.ld.modelbuilder
             }
             #endregion
             
-			#region [.-2-.]
+            #region [.-2-.]
             Console.WriteLine( "start process TFiDF..." );
             var _tfidf_result = _tfidf.Process();
-			_tfidf = null;
-			GC.Collect();
+            _tfidf = null;
+            GC.Collect();
             Console.WriteLine( "end process TFiDF" );
             #endregion
 
@@ -416,7 +416,7 @@ namespace lingvo.ld.modelbuilder
             {
                 var fn = fileNames[ i ];
                 var fi = new FileInfo( Path.Combine( outputFolder, fn ) );
-			    var outputFile = Path.Combine( fi.DirectoryName, fi.Name.Substring( 0, fi.Name.Length - fi.Extension.Length ) +
+                var outputFile = Path.Combine( fi.DirectoryName, fi.Name.Substring( 0, fi.Name.Length - fi.Extension.Length ) +
                                                "-(" + bp.Ngrams + "-" + bp.CutThreshold + ")" + fi.Extension );
 
                 var sw = new StreamWriter( outputFile, false, Config.Inst.OUTPUT_ENCODING );
@@ -429,11 +429,11 @@ namespace lingvo.ld.modelbuilder
             
             for ( int i = 0, len = _tfidf_result.TFiDF.Length; i < len; i++ )
             {
-				var values = _tfidf_result.TFiDF[ i ];
+                var values = _tfidf_result.TFiDF[ i ];
                 //if ( !AllValuesAreEquals( values ) )
-				//{
-	                var w = _tfidf_result.Words[ i ];
-	                var s = sb.Clear().Append( w ).Append( '\t' ).ToString();
+                //{
+                    var w = _tfidf_result.Words[ i ];
+                    var s = sb.Clear().Append( w ).Append( '\t' ).ToString();
                     for ( int j = 0; j < fileNamesCount; j++ )
                     {
                         var v = values[ j ];
@@ -444,14 +444,14 @@ namespace lingvo.ld.modelbuilder
                             sw.WriteLine( v.ToString( nfi ) );
                         }
                     }
-				//}
+                //}
             }
 
             sws.ForEach( sw => { sw.Close(); sw.Dispose(); } );
             
             Console.WriteLine( "end write result" + Environment.NewLine );
             #endregion
-		}
+        }
 
         /*private static bool AllValuesAreEquals( float[] values )
         {
@@ -474,14 +474,14 @@ namespace lingvo.ld.modelbuilder
             }
         }
         private static void BuildSingleLanguage_UsePortion( build_params_t bp, string inputFolder4Language )
-		{
+        {
             #region [.-0-.]
             Console.WriteLine( "start process language-folder: '/" + inputFolder4Language + "/'..." );
 
             var _tfidf = new tfidf( bp.Ngrams, bp.CutThreshold );
-			#endregion
+            #endregion
 
-			#region [.-1-.]
+            #region [.-1-.]
             var clearCyrillicsChars = bp.ClearCyrillicsCharsByLanguage.Contains( inputFolder4Language );
             var folder4Language = Path.Combine( bp.InputBaseFolder, inputFolder4Language );
             var fileNames = new List< string >();
@@ -500,11 +500,11 @@ namespace lingvo.ld.modelbuilder
             }
             #endregion
             
-			#region [.-2-.]
+            #region [.-2-.]
             Console.WriteLine( "start process TFiDF..." );
             var _tfidf_result = _tfidf.Process();
-			_tfidf = null;
-			GC.Collect();
+            _tfidf = null;
+            GC.Collect();
             Console.WriteLine( "end process TFiDF" );
             #endregion
 
@@ -520,7 +520,7 @@ namespace lingvo.ld.modelbuilder
             {
                 var fn = fileNames[ i ];
                 var fi = new FileInfo( Path.Combine( outputFolder, fn ) );
-			    var outputFile = Path.Combine( fi.DirectoryName, fi.Name.Substring( 0, fi.Name.Length - fi.Extension.Length ) +
+                var outputFile = Path.Combine( fi.DirectoryName, fi.Name.Substring( 0, fi.Name.Length - fi.Extension.Length ) +
                                                "-(" + bp.Ngrams + "-" + bp.CutThreshold + ")" + fi.Extension );
 
                 var sw = new StreamWriter( outputFile, false, Config.Inst.OUTPUT_ENCODING );
@@ -533,11 +533,11 @@ namespace lingvo.ld.modelbuilder
             
             for ( int i = 0, len = _tfidf_result.TFiDF.Length; i < len; i++ )
             {
-				var values = _tfidf_result.TFiDF[ i ];
+                var values = _tfidf_result.TFiDF[ i ];
                 //if ( !AllValuesAreEquals( values ) )
-				//{
-	            var w = _tfidf_result.Words[ i ];
-	            var s = sb.Clear().Append( w ).Append( '\t' ).ToString();
+                //{
+                var w = _tfidf_result.Words[ i ];
+                var s = sb.Clear().Append( w ).Append( '\t' ).ToString();
                 for ( int j = 0; j < fileNamesCount; j++ )
                 {
                     var v = values[ j ];
@@ -548,7 +548,7 @@ namespace lingvo.ld.modelbuilder
                         sw.WriteLine( v.ToString( nfi ) );
                     }
                 }
-				//}
+                //}
             }
 
             sws.ForEach( sw => { sw.Close(); sw.Dispose(); } );
@@ -561,7 +561,7 @@ namespace lingvo.ld.modelbuilder
 
             Console.WriteLine( "end write result" + Environment.NewLine );            
             #endregion
-		}
+        }
 
         /// <summary>
         /// 
@@ -621,22 +621,22 @@ namespace lingvo.ld.modelbuilder
                 _DocumentNgrams_1 = new Dictionary< string, int >( _Bp.MaxPortionSize, word_IComparer.Instance );
 
                 switch ( _Bp.Ngrams )
-	            {
-		            case NGramsEnum.ngram_4:
+                {
+                    case NGramsEnum.ngram_4:
                         _OutputFilenames.Add( NGramsEnum.ngram_4, new List< string >() );
                         _DocumentNgrams_4 = new Dictionary< string, int >( _Bp.MaxPortionSize, word_IComparer.Instance );
                     goto case NGramsEnum.ngram_3;
 
-		            case NGramsEnum.ngram_3:
+                    case NGramsEnum.ngram_3:
                         _OutputFilenames.Add( NGramsEnum.ngram_3, new List< string >() );
                         _DocumentNgrams_3 = new Dictionary< string, int >( _Bp.MaxPortionSize, word_IComparer.Instance );
-		            goto case NGramsEnum.ngram_2;
+                    goto case NGramsEnum.ngram_2;
 
-		            case NGramsEnum.ngram_2:
+                    case NGramsEnum.ngram_2:
                         _OutputFilenames.Add( NGramsEnum.ngram_2, new List< string >() );
                         _DocumentNgrams_2 = new Dictionary< string, int >( _Bp.MaxPortionSize, word_IComparer.Instance );
-		            break;
-	            }
+                    break;
+                }
                
                 _Sb = new StringBuilder();
 
@@ -652,8 +652,8 @@ namespace lingvo.ld.modelbuilder
                 _DocumentNgrams_1.AddOrUpdate( word );
 
                 switch ( _Bp.Ngrams )
-	            {
-		            case NGramsEnum.ngram_4:
+                {
+                    case NGramsEnum.ngram_4:
                         CheckPortion( _DocumentNgrams_4, NGramsEnum.ngram_4 );
                         if ( _Word_prev3 != null )
                         {
@@ -668,7 +668,7 @@ namespace lingvo.ld.modelbuilder
                         _Word_prev3 = _Word_prev2;
                     goto case NGramsEnum.ngram_3;
 
-		            case NGramsEnum.ngram_3:
+                    case NGramsEnum.ngram_3:
                         CheckPortion( _DocumentNgrams_3, NGramsEnum.ngram_3 );
                         if ( _Word_prev2 != null )
                         {
@@ -680,9 +680,9 @@ namespace lingvo.ld.modelbuilder
                                                          );                        
                         }
                         _Word_prev2 = _Word_prev1;
-		            goto case NGramsEnum.ngram_2;
+                    goto case NGramsEnum.ngram_2;
 
-		            case NGramsEnum.ngram_2:
+                    case NGramsEnum.ngram_2:
                         CheckPortion( _DocumentNgrams_2, NGramsEnum.ngram_2 );
                         if ( _Word_prev1 != null )
                         {
@@ -693,8 +693,8 @@ namespace lingvo.ld.modelbuilder
                                                          );                        
                         }
                         _Word_prev1 = word;
-		            break;
-	            }
+                    break;
+                }
             }
             private void ProcessWordActionClearCyrillicsChars( string word )
             {
@@ -711,8 +711,8 @@ namespace lingvo.ld.modelbuilder
                 _DocumentNgrams_1.AddOrUpdate( word );
 
                 switch ( _Bp.Ngrams )
-	            {
-		            case NGramsEnum.ngram_4:
+                {
+                    case NGramsEnum.ngram_4:
                         CheckPortion( _DocumentNgrams_4, NGramsEnum.ngram_4 );
                         if ( _Word_prev3 != null )
                         {
@@ -727,7 +727,7 @@ namespace lingvo.ld.modelbuilder
                         _Word_prev3 = _Word_prev2;
                     goto case NGramsEnum.ngram_3;
 
-		            case NGramsEnum.ngram_3:
+                    case NGramsEnum.ngram_3:
                         CheckPortion( _DocumentNgrams_3, NGramsEnum.ngram_3 );
                         if ( _Word_prev2 != null )
                         {
@@ -739,9 +739,9 @@ namespace lingvo.ld.modelbuilder
                                                          );                        
                         }
                         _Word_prev2 = _Word_prev1;
-		            goto case NGramsEnum.ngram_2;
+                    goto case NGramsEnum.ngram_2;
 
-		            case NGramsEnum.ngram_2:
+                    case NGramsEnum.ngram_2:
                         CheckPortion( _DocumentNgrams_2, NGramsEnum.ngram_2 );
                         if ( _Word_prev1 != null )
                         {
@@ -752,27 +752,27 @@ namespace lingvo.ld.modelbuilder
                                                          );                        
                         }
                         _Word_prev1 = word;
-		            break;
-	            }
+                    break;
+                }
             }
             private void ProcessLastAction()
             {
                 CheckLastPortion( _DocumentNgrams_1, NGramsEnum.ngram_1 );
 
                 switch ( _Bp.Ngrams )
-	            {
-		            case NGramsEnum.ngram_4:
+                {
+                    case NGramsEnum.ngram_4:
                         CheckLastPortion( _DocumentNgrams_4, NGramsEnum.ngram_4 );
                     goto case NGramsEnum.ngram_3;
 
-		            case NGramsEnum.ngram_3:
+                    case NGramsEnum.ngram_3:
                         CheckLastPortion( _DocumentNgrams_3, NGramsEnum.ngram_3 );
-		            goto case NGramsEnum.ngram_2;
+                    goto case NGramsEnum.ngram_2;
 
-		            case NGramsEnum.ngram_2:
+                    case NGramsEnum.ngram_2:
                         CheckLastPortion( _DocumentNgrams_2, NGramsEnum.ngram_2 );
-		            break;
-	            }
+                    break;
+                }
             }
             private void CheckPortion( Dictionary< string, int > dict, NGramsEnum ngram )
             {
@@ -840,19 +840,19 @@ namespace lingvo.ld.modelbuilder
                 ProcessNgrams_Routine( NGramsEnum.ngram_1 );
 
                 switch ( _Bp.Ngrams )
-	            {
-		            case NGramsEnum.ngram_4:
+                {
+                    case NGramsEnum.ngram_4:
                         ProcessNgrams_Routine( NGramsEnum.ngram_4 );
                     goto case NGramsEnum.ngram_3;
 
-		            case NGramsEnum.ngram_3:
+                    case NGramsEnum.ngram_3:
                         ProcessNgrams_Routine( NGramsEnum.ngram_3 );
-		            goto case NGramsEnum.ngram_2;
+                    goto case NGramsEnum.ngram_2;
 
-		            case NGramsEnum.ngram_2:
+                    case NGramsEnum.ngram_2:
                         ProcessNgrams_Routine( NGramsEnum.ngram_2 );
-		            break;
-	            }
+                    break;
+                }
 
                 _Tfidf.EndAddDocumentWords( _DocumentWordCount );
             }
@@ -1019,7 +1019,7 @@ namespace lingvo.ld.modelbuilder
                 #region [.IComparer< tuple_t >.]
                 public int Compare( tuple_t x, tuple_t y )
                 {
-                    var d = y.word.Count - x.word.Count;			
+                    var d = y.word.Count - x.word.Count;            
                     if ( d != 0 )
                         return (d);
 
