@@ -14,9 +14,9 @@ namespace lingvo.ld.modelconverter
     internal interface IConfig
     {
         MModelConfig GetModelConfig();
-        string LANGUAGE_MODELS_FOLDER { get; }
-        int    ML_MODEL_DICTIONARY_CAPACITY { get; }
-        string OUTPUT_FILE_NAME { get; }
+        string       LANGUAGE_MODELS_FOLDER       { get; }
+        int          ML_MODEL_DICTIONARY_CAPACITY { get; }
+        string       OUTPUT_FILE_NAME             { get; }
     }
 
     /// <summary>
@@ -24,10 +24,10 @@ namespace lingvo.ld.modelconverter
     /// </summary>
     internal sealed class Config : IConfig
     {
-        private string _LANGUAGE_MODELS_FOLDER;
-        private int    _ML_MODEL_DICTIONARY_CAPACITY;
-        private string _OUTPUT_FILE_NAME;
-        private int    _OUTPUT_FILE_SIZE_IN_BYTES;
+        private string   _LANGUAGE_MODELS_FOLDER;
+        private int      _ML_MODEL_DICTIONARY_CAPACITY;
+        private string   _OUTPUT_FILE_NAME;
+        private int      _OUTPUT_FILE_SIZE_IN_BYTES;
         private string   _BINARY_MODEL_FOLDER;
         private string[] _BINARY_MODEL_FILE_NAMES;
 
@@ -37,9 +37,7 @@ namespace lingvo.ld.modelconverter
             _ML_MODEL_DICTIONARY_CAPACITY = int.Parse( ConfigurationManager.AppSettings[ "ML_MODEL_DICTIONARY_CAPACITY" ] );
             _OUTPUT_FILE_NAME             = ConfigurationManager.AppSettings[ "OUTPUT_FILE_NAME" ];
 
-            var v = ConfigurationManager.AppSettings[ "OUTPUT_FILE_SIZE_IN_BYTES" ];
-            var n = 0;
-            if ( int.TryParse( v, out n ) )
+            if ( int.TryParse( ConfigurationManager.AppSettings[ "OUTPUT_FILE_SIZE_IN_BYTES" ], out var n ) )
             {
                 _OUTPUT_FILE_SIZE_IN_BYTES = n;
             }
@@ -72,10 +70,10 @@ namespace lingvo.ld.modelconverter
             }
         }
 
-        public string LANGUAGE_MODELS_FOLDER { get { return (_LANGUAGE_MODELS_FOLDER); } }
+        public string LANGUAGE_MODELS_FOLDER       { get { return (_LANGUAGE_MODELS_FOLDER);       } }
         public int    ML_MODEL_DICTIONARY_CAPACITY { get { return (_ML_MODEL_DICTIONARY_CAPACITY); } }
-        public string OUTPUT_FILE_NAME { get { return (_OUTPUT_FILE_NAME); } }
-        public int    OUTPUT_FILE_SIZE_IN_BYTES { get { return (_OUTPUT_FILE_SIZE_IN_BYTES); } }
+        public string OUTPUT_FILE_NAME             { get { return (_OUTPUT_FILE_NAME);             } }
+        public int    OUTPUT_FILE_SIZE_IN_BYTES    { get { return (_OUTPUT_FILE_SIZE_IN_BYTES);    } }
 
         private IEnumerable< LanguageConfig > GetModelLanguageConfigs()
         {

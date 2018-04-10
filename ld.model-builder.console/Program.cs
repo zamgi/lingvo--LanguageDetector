@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-using lingvo.core;
 using lingvo.core.algorithm;
 using lingvo.tokenizing;
 using lingvo.urls;
@@ -149,153 +148,6 @@ namespace lingvo.ld.modelbuilder
     /// </summary>
     internal static class Program
     {
-        private static IEnumerable< Tuple< NGramsEnum, CutThresholdEnum > > GetProcessParams()
-        {
-            for ( var ngarms = NGramsEnum.ngram_1; ngarms <= NGramsEnum.ngram_2; ngarms++ )
-            {
-                for ( var d = CutThresholdEnum.cut_1; d <= CutThresholdEnum.cut_2; d++ )
-                {
-                    yield return (Tuple.Create( ngarms, d ));
-                }
-            }
-        }
-
-        private static void Main( string[] args )
-        {
-            var wasErrors = false;
-            try
-            {
-                #region [.print to console config.]
-                Console.WriteLine(Environment.NewLine + "----------------------------------------------");
-                Console.WriteLine( "USE_BOOST_PRIORITY       : '" + Config.Inst.USE_BOOST_PRIORITY + "'" );
-                Console.WriteLine( "BUILD_MODE               : '" + Config.Inst.BUILD_MODE + "'" );
-                switch ( Config.Inst.BUILD_MODE )
-                {
-                    case BuildModeEnum.single_model:
-                Console.WriteLine( "NGARMS                   : '" + Config.Inst.NGARMS  + "'" );
-                Console.WriteLine( "CUT_THRESHOLD            : '" + Config.Inst.CUT_THRESHOLD + "'" );                
-                    break;
-                }
-                Console.WriteLine( "INPUT_FOLDERS_BY_LANGUAGE: '" + string.Join( "'; '", Config.Inst.INPUT_FOLDERS_BY_LANGUAGE ) + "'" );
-                Console.WriteLine( "INPUT_BASE_FOLDER        : '" + Config.Inst.INPUT_BASE_FOLDER + "'" );
-                Console.WriteLine( "INPUT_ENCODING           : '" + Config.Inst.INPUT_ENCODING.WebName + "'" );
-                Console.WriteLine( "OUTPUT_BASE_FOLDER       : '" + Config.Inst.OUTPUT_BASE_FOLDER + "'" );
-                Console.WriteLine( "OUTPUT_ENCODING          : '" + Config.Inst.OUTPUT_ENCODING.WebName + "'" );
-                Console.WriteLine( "USE_PORTION              : '" + Config.Inst.USE_PORTION + "'" );
-                if ( Config.Inst.USE_PORTION )
-                Console.WriteLine( "MAX_PORTION_SIZE         : '" + Config.Inst.MAX_PORTION_SIZE + "'" );
-                Console.WriteLine("----------------------------------------------" + Environment.NewLine);
-                #endregion
-
-                #region [.use boost priority.]
-                if ( Config.Inst.USE_BOOST_PRIORITY )
-                {
-                    var pr = Process.GetCurrentProcess();
-                    pr.PriorityClass              = ProcessPriorityClass.RealTime;
-                    pr.PriorityBoostEnabled       = true;
-                    Thread.CurrentThread.Priority = ThreadPriority.Highest;
-                }
-                #endregion
-
-                #region [.url-detector.]
-                var urlDetectorModel = new UrlDetectorModel( Config.Inst.URL_DETECTOR_RESOURCES_XML_FILENAME );
-                #endregion
-
-                #region [.build model's.]
-                if ( Config.Inst.BUILD_MODE == BuildModeEnum.single_model )
-                {
-                    var bp = new build_params_t()
-                    {
-                        UrlDetectorModel              = urlDetectorModel,
-                        InputBaseFolder               = Config.Inst.INPUT_BASE_FOLDER,
-                        InputFoldersByLanguage        = Config.Inst.INPUT_FOLDERS_BY_LANGUAGE,
-                        Ngrams                        = Config.Inst.NGARMS,
-                        CutThreshold                  = Config.Inst.CUT_THRESHOLD,
-                        OutputBaseFolder              = Config.Inst.OUTPUT_BASE_FOLDER,
-                        MaxPortionSize                = Config.Inst.MAX_PORTION_SIZE,
-                        ClearCyrillicsCharsByLanguage = Config.Inst.CLEAR_CYRILLICS_CHARS_BY_LANGUAGE,
-                    };
-                    var sw = Stopwatch.StartNew();
-                    if ( Config.Inst.USE_PORTION )
-                    {
-                        Build_UsePortion( bp );
-                    }
-                    else
-                    {
-                        Build( bp );
-                    }
-                    sw.Stop();
-
-                    Console.WriteLine( "'" + Config.Inst.NGARMS + "; " + Config.Inst.CUT_THRESHOLD + "' - success, elapsed: " + sw.Elapsed + Environment.NewLine );
-                }
-                else
-                {
-                    var tuples = GetProcessParams();
-
-                    #region [.build model's.]
-                    var sw_total = Stopwatch.StartNew();
-                    foreach ( var t in tuples )
-                    {
-                        var bp = new build_params_t()
-                        {
-                            UrlDetectorModel              = urlDetectorModel,
-                            InputBaseFolder               = Config.Inst.INPUT_BASE_FOLDER,
-                            InputFoldersByLanguage        = Config.Inst.INPUT_FOLDERS_BY_LANGUAGE,
-                            Ngrams                        = t.Item1,
-                            CutThreshold                  = t.Item2,
-                            OutputBaseFolder              = Config.Inst.OUTPUT_BASE_FOLDER,
-                            MaxPortionSize                = Config.Inst.MAX_PORTION_SIZE,
-                            ClearCyrillicsCharsByLanguage = Config.Inst.CLEAR_CYRILLICS_CHARS_BY_LANGUAGE,
-                        };
-                        try
-                        {
-                            var sw = Stopwatch.StartNew();
-                            if ( Config.Inst.USE_PORTION )
-                            {
-                                Build_UsePortion( bp );
-                            }
-                            else
-                            {
-                                Build( bp );
-                            }
-                            sw.Stop();
-
-                            Console.WriteLine( "'" + bp.Ngrams + "; " + bp.CutThreshold + "' - success, elapsed: " + sw.Elapsed + Environment.NewLine );
-                        }
-                        catch ( Exception ex )
-                        {
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine( "'" + bp.Ngrams + "; " + bp.CutThreshold + "' - " +  ex.GetType() + ": " + ex.Message );
-                            Console.ResetColor();
-                            wasErrors = true;
-                        }
-                    }
-                    sw_total.Stop();
-
-                    Console.WriteLine( "total elapsed: " + sw_total.Elapsed );
-                    #endregion
-                }
-                #endregion
-            }
-            catch ( Exception ex )
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine( Environment.NewLine + ex + Environment.NewLine );
-                Console.ResetColor();
-                wasErrors = true;
-            }
-
-            if ( wasErrors )
-            {
-                Console.WriteLine( Environment.NewLine + "[.....finita fusking comedy (push ENTER 4 exit).....]" );
-                Console.ReadLine();
-            }
-            else
-            {
-                Console.WriteLine( Environment.NewLine + "[.....finita fusking comedy.....]" );
-            }
-        }
-
         /// <summary>
         /// 
         /// </summary>
@@ -316,262 +168,13 @@ namespace lingvo.ld.modelbuilder
             }
         }
 
-        private static void Build( build_params_t bp )
-        {
-            foreach ( var inputFolder4Language in bp.InputFoldersByLanguage )
-            {
-                BuildSingleLanguage( bp, inputFolder4Language );
-            }
-        }
-        private static void BuildSingleLanguage( build_params_t bp, string inputFolder4Language )
-        {
-            #region [.-0-.]
-            Console.WriteLine( "start process language-folder: '/" + inputFolder4Language + "/'..." );
-
-            var _tfidf    = new tfidf( bp.Ngrams, bp.CutThreshold );
-            var tokenizer = new mld_tokenizer( bp.UrlDetectorModel );
-            var clearCyrillicsChars = bp.ClearCyrillicsCharsByLanguage.Contains( inputFolder4Language );
-
-            var processWordAction = default(Action< string >);
-            if ( clearCyrillicsChars )
-            {
-                processWordAction = (word) =>
-                {
-                    if ( !HasCyrillicsChars( word ) )
-                    {
-                        _tfidf.AddDocumentWord( word );
-                    }
-                };
-            }
-            else
-            {
-                processWordAction = (word) =>
-                {
-                    _tfidf.AddDocumentWord( word );
-                };
-            }
-            #endregion
-
-            #region [.-1-.]
-            var folder4Language = Path.Combine( bp.InputBaseFolder, inputFolder4Language );
-            var fileNames = new List< string >();
-            var fis = from fileName in Directory.EnumerateFiles( folder4Language )
-                        let fi = new FileInfo( fileName )
-                        orderby fi.Length descending
-                      select fi;
-            foreach ( var fi in fis )
-            {
-                fileNames.Add( fi.Name );
-                Console.WriteLine( "start process file: '" + fi.Name + "' [" + fi.DisplaySize() + "]..." );
-
-                _tfidf.BeginAddDocument();
-                using ( var sr = new StreamReader( fi.FullName, Config.Inst.INPUT_ENCODING ) )
-                {
-                    for ( var line = sr.ReadLine(); line != null; line = sr.ReadLine() )
-                    {
-                        tokenizer.Run( line, processWordAction );
-                    }
-
-                    if ( !_tfidf.CurrentDocumentHasWords )
-                    {
-                        throw (new InvalidDataException( "input text is-null-or-white-space, filename: '" + fi.FullName + '\'' ));
-                    }
-                }
-                _tfidf.EndAddDocument();
-                GC.Collect();
-
-                #region commented
-                /*
-                var words = tokenizer.run( text );
-                text = null;
-                GC.Collect();
-
-                _tfidf.AddDocument( words );
-                words = null;
-                GC.Collect();
-                */
-                #endregion
-
-                Console.WriteLine( "end process file" );
-            }
-            #endregion
-            
-            #region [.-2-.]
-            Console.WriteLine( "start process TFiDF..." );
-            var _tfidf_result = _tfidf.Process();
-            _tfidf = null;
-            GC.Collect();
-            Console.WriteLine( "end process TFiDF" );
-            #endregion
-
-            #region [.-3-.]
-            Console.WriteLine( "start write result..." );
-            var outputFolder = Path.Combine( bp.OutputBaseFolder, inputFolder4Language );
-            if ( !Directory.Exists( outputFolder ) )
-                  Directory.CreateDirectory( outputFolder );
-
-            var fileNamesCount = fileNames.Count;
-            var sws = new List< StreamWriter >( fileNamesCount );
-            for ( var i = 0; i < fileNamesCount; i++ )
-            {
-                var fn = fileNames[ i ];
-                var fi = new FileInfo( Path.Combine( outputFolder, fn ) );
-                var outputFile = Path.Combine( fi.DirectoryName, fi.Name.Substring( 0, fi.Name.Length - fi.Extension.Length ) +
-                                               "-(" + bp.Ngrams + "-" + bp.CutThreshold + ")" + fi.Extension );
-
-                var sw = new StreamWriter( outputFile, false, Config.Inst.OUTPUT_ENCODING );
-                sw.WriteLine( "#\t'" + fn + "' (" + bp.Ngrams + "-" + bp.CutThreshold + ")" );
-                sws.Add( sw );
-            }
-
-            var sb  = new StringBuilder();
-            var nfi = new NumberFormatInfo() { NumberDecimalSeparator = "." };
-            
-            for ( int i = 0, len = _tfidf_result.TFiDF.Length; i < len; i++ )
-            {
-                var values = _tfidf_result.TFiDF[ i ];
-                //if ( !AllValuesAreEquals( values ) )
-                //{
-                    var w = _tfidf_result.Words[ i ];
-                    var s = sb.Clear().Append( w ).Append( '\t' ).ToString();
-                    for ( int j = 0; j < fileNamesCount; j++ )
-                    {
-                        var v = values[ j ];
-                        if ( v != 0 )
-                        {
-                            var sw = sws[ j ];
-                            sw.Write( s );
-                            sw.WriteLine( v.ToString( nfi ) );
-                        }
-                    }
-                //}
-            }
-
-            sws.ForEach( sw => { sw.Close(); sw.Dispose(); } );
-            
-            Console.WriteLine( "end write result" + Environment.NewLine );
-            #endregion
-        }
-
-        /*private static bool AllValuesAreEquals( float[] values )
-        {
-            var v1 = values[ 0 ];
-            for ( int i = 1, len = values.Length; i < len; i++ )
-            {
-                if ( v1 != values[ i ] )
-                {
-                    return (false);
-                }
-            }
-            return (true);
-        }*/
-
-        private static void Build_UsePortion( build_params_t bp )
-        {
-            foreach ( var inputFolder4Language in bp.InputFoldersByLanguage )
-            {
-                BuildSingleLanguage_UsePortion( bp, inputFolder4Language );
-            }
-        }
-        private static void BuildSingleLanguage_UsePortion( build_params_t bp, string inputFolder4Language )
-        {
-            #region [.-0-.]
-            Console.WriteLine( "start process language-folder: '/" + inputFolder4Language + "/'..." );
-
-            var _tfidf = new tfidf( bp.Ngrams, bp.CutThreshold );
-            #endregion
-
-            #region [.-1-.]
-            var clearCyrillicsChars = bp.ClearCyrillicsCharsByLanguage.Contains( inputFolder4Language );
-            var folder4Language = Path.Combine( bp.InputBaseFolder, inputFolder4Language );
-            var fileNames = new List< string >();
-            var fis = from fileName in Directory.EnumerateFiles( folder4Language )
-                        let fi = new FileInfo( fileName )
-                        orderby fi.Length descending
-                      select fi;
-            foreach ( var fi in fis )
-            {
-                fileNames.Add( fi.Name );
-                Console.WriteLine( "start process file: '" + fi.Name + "' [" + fi.DisplaySize() + "]..." );
-
-                BuildTFMatrix_UsePortion( bp, fi, _tfidf, clearCyrillicsChars );                
-
-                Console.WriteLine( "end process file" + Environment.NewLine );
-            }
-            #endregion
-            
-            #region [.-2-.]
-            Console.WriteLine( "start process TFiDF..." );
-            var _tfidf_result = _tfidf.Process();
-            _tfidf = null;
-            GC.Collect();
-            Console.WriteLine( "end process TFiDF" );
-            #endregion
-
-            #region [.-3-.]
-            Console.WriteLine( "start write result..." );
-            var outputFolder = Path.Combine( bp.OutputBaseFolder, inputFolder4Language );
-            if ( !Directory.Exists( outputFolder ) )
-                  Directory.CreateDirectory( outputFolder );
-
-            var fileNamesCount = fileNames.Count;
-            var sws = new List< StreamWriter >( fileNamesCount );
-            for ( var i = 0; i < fileNamesCount; i++ )
-            {
-                var fn = fileNames[ i ];
-                var fi = new FileInfo( Path.Combine( outputFolder, fn ) );
-                var outputFile = Path.Combine( fi.DirectoryName, fi.Name.Substring( 0, fi.Name.Length - fi.Extension.Length ) +
-                                               "-(" + bp.Ngrams + "-" + bp.CutThreshold + ")" + fi.Extension );
-
-                var sw = new StreamWriter( outputFile, false, Config.Inst.OUTPUT_ENCODING );
-                sw.WriteLine( "#\t'" + fn + "' (" + bp.Ngrams + "-" + bp.CutThreshold + ")" );
-                sws.Add( sw );
-            }
-
-            var sb  = new StringBuilder();
-            var nfi = new NumberFormatInfo() { NumberDecimalSeparator = "." };
-            
-            for ( int i = 0, len = _tfidf_result.TFiDF.Length; i < len; i++ )
-            {
-                var values = _tfidf_result.TFiDF[ i ];
-                //if ( !AllValuesAreEquals( values ) )
-                //{
-                var w = _tfidf_result.Words[ i ];
-                var s = sb.Clear().Append( w ).Append( '\t' ).ToString();
-                for ( int j = 0; j < fileNamesCount; j++ )
-                {
-                    var v = values[ j ];
-                    if ( v != 0 )
-                    {
-                        var sw = sws[ j ];
-                        sw.Write( s );
-                        sw.WriteLine( v.ToString( nfi ) );
-                    }
-                }
-                //}
-            }
-
-            sws.ForEach( sw => { sw.Close(); sw.Dispose(); } );
-
-            var tempOutputFolder = Path.Combine( folder4Language, "temp" );
-            if ( Directory.Exists( tempOutputFolder ) )
-            {
-                Directory.Delete( tempOutputFolder, true );
-            }
-
-            Console.WriteLine( "end write result" + Environment.NewLine );            
-            #endregion
-        }
-
         /// <summary>
         /// 
         /// </summary>
         private sealed class word_IComparer : IComparer< string >, IEqualityComparer< string >
         {
             public static readonly word_IComparer Instance = new word_IComparer();
-            private word_IComparer()
-            {
-            }
+            private word_IComparer() { }
 
             #region [.IComparer< string >.]
             public int Compare( string x, string y )
@@ -597,6 +200,104 @@ namespace lingvo.ld.modelbuilder
         /// </summary>
         private sealed class portioner_t
         {
+            /// <summary>
+            /// 
+            /// </summary>
+            private sealed class ngram_filereader_t : IDisposable
+            {
+                private static readonly char[] SPLIT_CHAR = new[] { '\t' };
+                private readonly StreamReader _Sr;
+                private string _Line;
+
+                public ngram_filereader_t( string fileName )
+                {
+                    _Sr   = new StreamReader( fileName, Config.Inst.INPUT_ENCODING );
+                    _Line = _Sr.ReadLine();
+                }
+
+                public void Dispose()
+                {
+                    _Sr.Dispose();
+                }
+
+                /*public IEnumerable< KeyValuePair< string, int > > ReadAll()
+                {
+                    for ( var line = _Sr.ReadLine(); line != null; line = _Sr.ReadLine() )
+                    {
+                        var a = line.Split( SPLIT_CHAR, StringSplitOptions.RemoveEmptyEntries );
+                        yield return (new KeyValuePair< string, int >( a[ 0 ], int.Parse( a[ 1 ] ) ));
+                    }
+                }*/
+                public word_t ReadNext()
+                {
+                    if ( _Line != null )
+                    {
+                        var a = _Line.Split( SPLIT_CHAR, StringSplitOptions.RemoveEmptyEntries );
+                        _Line = _Sr.ReadLine();
+                        var word = new word_t() 
+                        { 
+                            Value = a[ 0 ], 
+                            Count = int.Parse( a[ 1 ] ) 
+                        };
+                        return (word);
+                    }
+                    return (null);
+                }
+            }
+            /// <summary>
+            /// 
+            /// </summary>
+            private sealed class tuple_t : IDisposable
+            {
+                public tuple_t( word_t _word, ngram_filereader_t _ngram_filereader )
+                {
+                    word             = _word;
+                    ngram_filereader = _ngram_filereader;
+                }
+
+                public word_t word { get; set; }
+                public ngram_filereader_t ngram_filereader { get; private set; }
+
+                public void Dispose()
+                {
+                    ngram_filereader.Dispose();
+                }
+            }
+            /// <summary>
+            /// 
+            /// </summary>
+            private sealed class tuple_word_value_IComparer : IComparer< tuple_t >
+            {
+                public static readonly tuple_word_value_IComparer Instance = new tuple_word_value_IComparer();
+                private tuple_word_value_IComparer() { }
+
+                #region [.IComparer< tuple_t >.]
+                public int Compare( tuple_t x, tuple_t y )
+                {
+                    return (string.CompareOrdinal( x.word.Value, y.word.Value ));
+                }
+                #endregion
+            }
+            /// <summary>
+            /// 
+            /// </summary>
+            private sealed class tuple_word_count_IComparer : IComparer< tuple_t >
+            {
+                public static readonly tuple_word_count_IComparer Instance = new tuple_word_count_IComparer();
+                private tuple_word_count_IComparer() { }
+
+                #region [.IComparer< tuple_t >.]
+                public int Compare( tuple_t x, tuple_t y )
+                {
+                    var d = y.word.Count - x.word.Count;            
+                    if ( d != 0 )
+                        return (d);
+
+                    return (string.CompareOrdinal( y.word.Value, x.word.Value ));
+                }
+                #endregion
+            }
+
             private readonly build_params_t            _Bp;
             private readonly FileInfo                  _Fi;
             private int                                _DocumentWordCount;
@@ -698,7 +399,7 @@ namespace lingvo.ld.modelbuilder
             }
             private void ProcessWordActionClearCyrillicsChars( string word )
             {
-                if ( HasCyrillicsChars( word ) )
+                if ( word.HasCyrillicsChars() )
                 {
                     _Word_prev3 = _Word_prev2 = _Word_prev1 = null;
                     return;
@@ -774,6 +475,7 @@ namespace lingvo.ld.modelbuilder
                     break;
                 }
             }
+
             private void CheckPortion( Dictionary< string, int > dict, NGramsEnum ngram )
             {
                 if ( _Bp.MaxPortionSize <= dict.Count )
@@ -797,41 +499,7 @@ namespace lingvo.ld.modelbuilder
                     } 
                 }
             }
-            public void BuildTFMatrix_UsePortion( bool clearCyrillicsChars )
-            {
-                var tokenizer = new mld_tokenizer( _Bp.UrlDetectorModel );
-
-                //-1-
-
-                var processWordAction = default(Action< string >);
-                if ( clearCyrillicsChars )
-                {
-                    processWordAction = ProcessWordActionClearCyrillicsChars;
-                }
-                else
-                {
-                    processWordAction = ProcessWordAction;
-                }
-
-                using ( var sr = new StreamReader( _Fi.FullName, Config.Inst.INPUT_ENCODING ) )
-                {
-                    for ( var line = sr.ReadLine(); line != null; line = sr.ReadLine() )
-                    {
-                        tokenizer.Run( line, processWordAction );
-                    }
-
-                    ProcessLastAction();
-
-                    if ( (_OutputFilenames[ NGramsEnum.ngram_1 ].Count == 0) && (_DocumentNgrams_1.Count == 0) )
-                    {
-                        throw (new InvalidDataException( "input text is-null-or-white-space, filename: '" + _Fi.FullName + '\'' ));
-                    }
-                }
-
-                //-2-
-                ProcessNgrams();
-                
-            }
+            
             private void ProcessNgrams()
             {
                 _Tfidf.BeginAddDocumentWords();
@@ -918,114 +586,39 @@ namespace lingvo.ld.modelbuilder
                 }
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            private sealed class ngram_filereader_t : IDisposable
+            public void BuildTFMatrix_UsePortion( bool clearCyrillicsChars )
             {
-                private static readonly char[] SPLIT_CHAR = new[] { '\t' };
-                private readonly StreamReader _Sr;
-                private string _Line;
-
-                public ngram_filereader_t( string fileName )
+                using ( var tokenizer = new mld_tokenizer( _Bp.UrlDetectorModel ) )
                 {
-                    _Sr   = new StreamReader( fileName, Config.Inst.INPUT_ENCODING );
-                    _Line = _Sr.ReadLine();
-                }
-
-                public void Dispose()
-                {
-                    _Sr.Dispose();
-                }
-
-                /*public IEnumerable< KeyValuePair< string, int > > ReadAll()
-                {
-                    for ( var line = _Sr.ReadLine(); line != null; line = _Sr.ReadLine() )
+                    //-1-
+                    var processWordAction = default(Action< string >);
+                    if ( clearCyrillicsChars )
                     {
-                        var a = line.Split( SPLIT_CHAR, StringSplitOptions.RemoveEmptyEntries );
-                        yield return (new KeyValuePair< string, int >( a[ 0 ], int.Parse( a[ 1 ] ) ));
+                        processWordAction = ProcessWordActionClearCyrillicsChars;
                     }
-                }*/
-                public word_t ReadNext()
-                {
-                    if ( _Line != null )
+                    else
                     {
-                        var a = _Line.Split( SPLIT_CHAR, StringSplitOptions.RemoveEmptyEntries );
-                        _Line = _Sr.ReadLine();
-                        var word = new word_t() 
-                        { 
-                            Value = a[ 0 ], 
-                            Count = int.Parse( a[ 1 ] ) 
-                        };
-                        return (word);
+                        processWordAction = ProcessWordAction;
                     }
-                    return (null);
-                }
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            private sealed class tuple_t : IDisposable
-            {
-                public tuple_t( word_t _word, ngram_filereader_t _ngram_filereader )
-                {
-                    word             = _word;
-                    ngram_filereader = _ngram_filereader;
-                }
 
-                public word_t word
-                {
-                    get;
-                    set;
-                }
-                public ngram_filereader_t ngram_filereader
-                {
-                    get;
-                    private set;
-                }
+                    using ( var sr = new StreamReader( _Fi.FullName, Config.Inst.INPUT_ENCODING ) )
+                    {
+                        for ( var line = sr.ReadLine(); line != null; line = sr.ReadLine() )
+                        {
+                            tokenizer.Run( line, processWordAction );
+                        }
 
-                public void Dispose()
-                {
-                    ngram_filereader.Dispose();
-                }
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            private sealed class tuple_word_value_IComparer : IComparer< tuple_t >
-            {
-                public static readonly tuple_word_value_IComparer Instance = new tuple_word_value_IComparer();
-                private tuple_word_value_IComparer()
-                {
-                }
+                        ProcessLastAction();
 
-                #region [.IComparer< tuple_t >.]
-                public int Compare( tuple_t x, tuple_t y )
-                {
-                    return (string.CompareOrdinal( x.word.Value, y.word.Value ));
-                }
-                #endregion
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            private sealed class tuple_word_count_IComparer : IComparer< tuple_t >
-            {
-                public static readonly tuple_word_count_IComparer Instance = new tuple_word_count_IComparer();
-                private tuple_word_count_IComparer()
-                {
-                }
+                        if ( (_OutputFilenames[ NGramsEnum.ngram_1 ].Count == 0) && (_DocumentNgrams_1.Count == 0) )
+                        {
+                            throw (new InvalidDataException( "input text is-null-or-white-space, filename: '" + _Fi.FullName + '\'' ));
+                        }
+                    }
 
-                #region [.IComparer< tuple_t >.]
-                public int Compare( tuple_t x, tuple_t y )
-                {
-                    var d = y.word.Count - x.word.Count;            
-                    if ( d != 0 )
-                        return (d);
-
-                    return (string.CompareOrdinal( y.word.Value, x.word.Value ));
+                    //-2-
+                    ProcessNgrams();
                 }
-                #endregion
             }
 
             private static IEnumerable< word_t > GroupByMerging_1( List< string > fileNames )
@@ -1150,7 +743,7 @@ namespace lingvo.ld.modelbuilder
             private static string Write2File( FileInfo fi, int portionNumber, Dictionary< string, int > tf_matrix, NGramsEnum tf_matrix_type )
             {
                 var outputFilename = Path.Combine( fi.DirectoryName, "temp", fi.Name + '.' + tf_matrix_type.ToString() + '.' + portionNumber.ToString() );
-                Console.WriteLine( "start write portion-file: '" + outputFilename + "' ..." );
+                Console.Write( "start write portion-file: '" + outputFilename + "'..." );
 
                 var ss = new SortedDictionary< string, int >( word_IComparer.Instance );
                 foreach ( var p in tf_matrix )
@@ -1182,7 +775,7 @@ namespace lingvo.ld.modelbuilder
             private static string Write2File( FileInfo fi, int portionNumber, SortedSet< word_t > ss, NGramsEnum ss_type )
             {
                 var outputFilename = Path.Combine( fi.DirectoryName, "temp", fi.Name + ".ss." + ss_type.ToString() + '.' + portionNumber.ToString() );
-                Console.WriteLine( "start write portion-file: '" + outputFilename + "' ..." );
+                Console.Write( "start write portion-file: '" + outputFilename + "'..." );
 
                 var ofi = new FileInfo( outputFilename );
                 if ( !ofi.Directory.Exists )
@@ -1206,6 +799,371 @@ namespace lingvo.ld.modelbuilder
             }
         }
 
+        private static void Main( string[] args )
+        {
+            var wasErrors = false;
+            try
+            {
+                #region [.print to console config.]
+                Console.WriteLine(Environment.NewLine + "----------------------------------------------");
+                Console.WriteLine( "USE_BOOST_PRIORITY       : '" + Config.Inst.USE_BOOST_PRIORITY + "'" );
+                Console.WriteLine( "BUILD_MODE               : '" + Config.Inst.BUILD_MODE + "'" );
+                switch ( Config.Inst.BUILD_MODE )
+                {
+                    case BuildModeEnum.single_model:
+                Console.WriteLine( "NGARMS                   : '" + Config.Inst.NGARMS  + "'" );
+                Console.WriteLine( "CUT_THRESHOLD            : '" + Config.Inst.CUT_THRESHOLD + "'" );                
+                    break;
+                }
+                Console.WriteLine( "INPUT_FOLDERS_BY_LANGUAGE: '" + string.Join( "'; '", Config.Inst.INPUT_FOLDERS_BY_LANGUAGE ) + "'" );
+                Console.WriteLine( "INPUT_BASE_FOLDER        : '" + Config.Inst.INPUT_BASE_FOLDER + "'" );
+                Console.WriteLine( "INPUT_ENCODING           : '" + Config.Inst.INPUT_ENCODING.WebName + "'" );
+                Console.WriteLine( "OUTPUT_BASE_FOLDER       : '" + Config.Inst.OUTPUT_BASE_FOLDER + "'" );
+                Console.WriteLine( "OUTPUT_ENCODING          : '" + Config.Inst.OUTPUT_ENCODING.WebName + "'" );
+                Console.WriteLine( "USE_PORTION              : '" + Config.Inst.USE_PORTION + "'" );
+                if ( Config.Inst.USE_PORTION )
+                Console.WriteLine( "MAX_PORTION_SIZE         : '" + Config.Inst.MAX_PORTION_SIZE + "'" );
+                Console.WriteLine("----------------------------------------------" + Environment.NewLine);
+                #endregion
+
+                #region [.use boost priority.]
+                if ( Config.Inst.USE_BOOST_PRIORITY )
+                {
+                    var pr = Process.GetCurrentProcess();
+                    pr.PriorityClass              = ProcessPriorityClass.RealTime;
+                    pr.PriorityBoostEnabled       = true;
+                    Thread.CurrentThread.Priority = ThreadPriority.Highest;
+                }
+                #endregion
+
+                #region [.url-detector.]
+                var urlDetectorModel = new UrlDetectorModel( Config.Inst.URL_DETECTOR_RESOURCES_XML_FILENAME );
+                #endregion
+
+                #region [.build model's.]
+                if ( Config.Inst.BUILD_MODE == BuildModeEnum.single_model )
+                {
+                    var bp = new build_params_t()
+                    {
+                        UrlDetectorModel              = urlDetectorModel,
+                        InputBaseFolder               = Config.Inst.INPUT_BASE_FOLDER,
+                        InputFoldersByLanguage        = Config.Inst.INPUT_FOLDERS_BY_LANGUAGE,
+                        Ngrams                        = Config.Inst.NGARMS,
+                        CutThreshold                  = Config.Inst.CUT_THRESHOLD,
+                        OutputBaseFolder              = Config.Inst.OUTPUT_BASE_FOLDER,
+                        MaxPortionSize                = Config.Inst.MAX_PORTION_SIZE,
+                        ClearCyrillicsCharsByLanguage = Config.Inst.CLEAR_CYRILLICS_CHARS_BY_LANGUAGE,
+                    };
+                    var sw = Stopwatch.StartNew();
+                    if ( Config.Inst.USE_PORTION )
+                    {
+                        Build_UsePortion( bp );
+                    }
+                    else
+                    {
+                        Build( bp );
+                    }
+                    sw.Stop();
+
+                    Console.WriteLine( "'" + Config.Inst.NGARMS + "; " + Config.Inst.CUT_THRESHOLD + "' - success, elapsed: " + sw.Elapsed + Environment.NewLine );
+                }
+                else
+                {
+                    #region [.build model's.]
+                    var sw_total = Stopwatch.StartNew();
+                    foreach ( var t in Extensions.GetProcessParams() )
+                    {
+                        var bp = new build_params_t()
+                        {
+                            UrlDetectorModel              = urlDetectorModel,
+                            InputBaseFolder               = Config.Inst.INPUT_BASE_FOLDER,
+                            InputFoldersByLanguage        = Config.Inst.INPUT_FOLDERS_BY_LANGUAGE,
+                            Ngrams                        = t.Item1,
+                            CutThreshold                  = t.Item2,
+                            OutputBaseFolder              = Config.Inst.OUTPUT_BASE_FOLDER,
+                            MaxPortionSize                = Config.Inst.MAX_PORTION_SIZE,
+                            ClearCyrillicsCharsByLanguage = Config.Inst.CLEAR_CYRILLICS_CHARS_BY_LANGUAGE,
+                        };
+                        try
+                        {
+                            var sw = Stopwatch.StartNew();
+                            if ( Config.Inst.USE_PORTION )
+                            {
+                                Build_UsePortion( bp );
+                            }
+                            else
+                            {
+                                Build( bp );
+                            }
+                            sw.Stop();
+
+                            Console.WriteLine( "'" + bp.Ngrams + "; " + bp.CutThreshold + "' - success, elapsed: " + sw.Elapsed + Environment.NewLine );
+                        }
+                        catch ( Exception ex )
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine( "'" + bp.Ngrams + "; " + bp.CutThreshold + "' - " +  ex.GetType() + ": " + ex.Message );
+                            Console.ResetColor();
+                            wasErrors = true;
+                        }
+                    }
+                    sw_total.Stop();
+
+                    Console.WriteLine( "total elapsed: " + sw_total.Elapsed );
+                    #endregion
+                }
+                #endregion
+            }
+            catch ( Exception ex )
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine( Environment.NewLine + ex + Environment.NewLine );
+                Console.ResetColor();
+                wasErrors = true;
+            }
+
+            if ( wasErrors )
+            {
+                Console.WriteLine( Environment.NewLine + "[.....finita fusking comedy (push ENTER 4 exit).....]" );
+                Console.ReadLine();
+            }
+            else
+            {
+                Console.WriteLine( Environment.NewLine + "[.....finita fusking comedy.....]" );
+            }
+        }
+
+        private static void Build( build_params_t bp )
+        {
+            foreach ( var inputFolder4Language in bp.InputFoldersByLanguage )
+            {
+                BuildSingleLanguage( bp, inputFolder4Language );
+            }
+        }
+        private static void BuildSingleLanguage( build_params_t bp, string inputFolder4Language )
+        {
+            #region [.-0-.]
+            Console.WriteLine( "start process language-folder: '/" + inputFolder4Language + "/'..." );
+
+            var _tfidf    = new tfidf( bp.Ngrams, bp.CutThreshold );
+            var tokenizer = new mld_tokenizer( bp.UrlDetectorModel );
+            var clearCyrillicsChars = bp.ClearCyrillicsCharsByLanguage.Contains( inputFolder4Language );
+
+            var processWordAction = default(Action< string >);
+            if ( clearCyrillicsChars )
+            {
+                processWordAction = (word) =>
+                {
+                    if ( !word.HasCyrillicsChars() )
+                    {
+                        _tfidf.AddDocumentWord( word );
+                    }
+                };
+            }
+            else
+            {
+                processWordAction = (word) =>
+                {
+                    _tfidf.AddDocumentWord( word );
+                };
+            }
+            #endregion
+
+            #region [.-1-.]
+            var folder4Language = Path.Combine( bp.InputBaseFolder, inputFolder4Language );
+            var fileNames = new List< string >();
+            var fis = from fileName in Directory.EnumerateFiles( folder4Language )
+                        let fi = new FileInfo( fileName )
+                        orderby fi.Length descending
+                      select fi;
+            foreach ( var fi in fis )
+            {
+                fileNames.Add( fi.Name );
+                Console.Write( "start process file: '" + fi.Name + "' [" + fi.DisplaySize() + "]..." );
+
+                _tfidf.BeginAddDocument();
+                using ( var sr = new StreamReader( fi.FullName, Config.Inst.INPUT_ENCODING ) )
+                {
+                    for ( var line = sr.ReadLine(); line != null; line = sr.ReadLine() )
+                    {
+                        tokenizer.Run( line, processWordAction );
+                    }
+
+                    if ( !_tfidf.CurrentDocumentHasWords )
+                    {
+                        throw (new InvalidDataException( "input text is-null-or-white-space, filename: '" + fi.FullName + '\'' ));
+                    }
+                }
+                _tfidf.EndAddDocument();
+                GC.Collect();
+
+                #region commented
+                /*
+                var words = tokenizer.run( text );
+                text = null;
+                GC.Collect();
+
+                _tfidf.AddDocument( words );
+                words = null;
+                GC.Collect();
+                */
+                #endregion
+
+                Console.WriteLine( "end process file" );
+            }
+            #endregion
+            
+            #region [.-2-.]
+            Console.Write( "start process TFiDF..." );
+            var _tfidf_result = _tfidf.Process();
+            _tfidf = null;
+            GC.Collect();
+            Console.WriteLine( "end process TFiDF" );
+            #endregion
+
+            #region [.-3-.]
+            Console.Write( "start write result..." );
+            var outputFolder = Path.Combine( bp.OutputBaseFolder, inputFolder4Language );
+            if ( !Directory.Exists( outputFolder ) )
+            {
+                Directory.CreateDirectory( outputFolder );
+            }
+
+            var fileNamesCount = fileNames.Count;
+            var sws = new List< StreamWriter >( fileNamesCount );
+            for ( var i = 0; i < fileNamesCount; i++ )
+            {
+                var fn = fileNames[ i ];
+                var fi = new FileInfo( Path.Combine( outputFolder, fn ) );
+                var outputFile = Path.Combine( fi.DirectoryName, fi.Name.Substring( 0, fi.Name.Length - fi.Extension.Length ) +
+                                               "-(" + bp.Ngrams + "-" + bp.CutThreshold + ")" + fi.Extension );
+
+                var sw = new StreamWriter( outputFile, false, Config.Inst.OUTPUT_ENCODING );
+                sw.WriteLine( "#\t'" + fn + "' (" + bp.Ngrams + "-" + bp.CutThreshold + ")" );
+                sws.Add( sw );
+            }
+
+            var nfi = new NumberFormatInfo() { NumberDecimalSeparator = "." };
+            
+            for ( int i = 0, len = _tfidf_result.TFiDF.Length; i < len; i++ )
+            {
+                var values = _tfidf_result.TFiDF[ i ];
+                //if ( values.AllValuesAreEquals() ) continue;
+                var w = _tfidf_result.Words[ i ];
+                for ( int j = 0; j < fileNamesCount; j++ )
+                {
+                    var v = values[ j ];
+                    if ( v != 0 )
+                    {
+                        var sw = sws[ j ];
+                        sw.Write( w );
+                        sw.Write( '\t' );
+                        sw.WriteLine( v.ToString( nfi ) );
+                    }
+                }
+            }
+
+            sws.ForEach( sw => { sw.Close(); sw.Dispose(); } );
+            
+            Console.WriteLine( "end write result" + Environment.NewLine );
+            #endregion
+        }
+
+        private static void Build_UsePortion( build_params_t bp )
+        {
+            foreach ( var inputFolder4Language in bp.InputFoldersByLanguage )
+            {
+                BuildSingleLanguage_UsePortion( bp, inputFolder4Language );
+            }
+        }
+        private static void BuildSingleLanguage_UsePortion( build_params_t bp, string inputFolder4Language )
+        {
+            #region [.-0-.]
+            Console.Write( "start process language-folder: '/" + inputFolder4Language + "/'..." );
+
+            var _tfidf = new tfidf( bp.Ngrams, bp.CutThreshold );
+            #endregion
+
+            #region [.-1-.]
+            var clearCyrillicsChars = bp.ClearCyrillicsCharsByLanguage.Contains( inputFolder4Language );
+            var folder4Language = Path.Combine( bp.InputBaseFolder, inputFolder4Language );
+            var fileNames = new List< string >();
+            var fis = from fileName in Directory.EnumerateFiles( folder4Language )
+                        let fi = new FileInfo( fileName )
+                        orderby fi.Length descending
+                      select fi;
+            foreach ( var fi in fis )
+            {
+                fileNames.Add( fi.Name );
+                Console.WriteLine( "start process file: '" + fi.Name + "' [" + fi.DisplaySize() + "]..." );
+
+                BuildTFMatrix_UsePortion( bp, fi, _tfidf, clearCyrillicsChars );                
+
+                Console.WriteLine( "end process file" + Environment.NewLine );
+            }
+            #endregion
+            
+            #region [.-2-.]
+            Console.Write( "start process TFiDF..." );
+            var _tfidf_result = _tfidf.Process();
+            _tfidf = null;
+            GC.Collect();
+            Console.WriteLine( "end process TFiDF" );
+            #endregion
+
+            #region [.-3-.]
+            Console.Write( "start write result..." );
+            var outputFolder = Path.Combine( bp.OutputBaseFolder, inputFolder4Language );
+            if ( !Directory.Exists( outputFolder ) )
+            {
+                Directory.CreateDirectory( outputFolder );
+            }
+
+            var fileNamesCount = fileNames.Count;
+            var sws = new List< StreamWriter >( fileNamesCount );
+            for ( var i = 0; i < fileNamesCount; i++ )
+            {
+                var fn = fileNames[ i ];
+                var fi = new FileInfo( Path.Combine( outputFolder, fn ) );
+                var outputFile = Path.Combine( fi.DirectoryName, fi.Name.Substring( 0, fi.Name.Length - fi.Extension.Length ) +
+                                               "-(" + bp.Ngrams + "-" + bp.CutThreshold + ")" + fi.Extension );
+
+                var sw = new StreamWriter( outputFile, false, Config.Inst.OUTPUT_ENCODING );
+                sw.WriteLine( "#\t'" + fn + "' (" + bp.Ngrams + "-" + bp.CutThreshold + ")" );
+                sws.Add( sw );
+            }
+
+            var nfi = new NumberFormatInfo() { NumberDecimalSeparator = "." };
+            
+            for ( int i = 0, len = _tfidf_result.TFiDF.Length; i < len; i++ )
+            {
+                var values = _tfidf_result.TFiDF[ i ];
+                //if ( values.AllValuesAreEquals() ) continue;
+                var w = _tfidf_result.Words[ i ];
+                for ( int j = 0; j < fileNamesCount; j++ )
+                {
+                    var v = values[ j ];
+                    if ( v != 0 )
+                    {
+                        var sw = sws[ j ];
+                        sw.Write( w );
+                        sw.Write( '\t' );
+                        sw.WriteLine( v.ToString( nfi ) );
+                    }
+                }
+            }
+
+            sws.ForEach( sw => { sw.Close(); sw.Dispose(); } );
+
+            var tempOutputFolder = Path.Combine( folder4Language, "temp" );
+            if ( Directory.Exists( tempOutputFolder ) )
+            {
+                Directory.Delete( tempOutputFolder, true );
+            }
+
+            Console.WriteLine( "end write result" + Environment.NewLine );            
+            #endregion
+        }
         private static void BuildTFMatrix_UsePortion( build_params_t bp, FileInfo fi, tfidf _tfidf, bool clearCyrillicsChars )
         {
             var portioner = new portioner_t( bp, fi, _tfidf );
@@ -1214,29 +1172,6 @@ namespace lingvo.ld.modelbuilder
 
             portioner = null;
             GC.Collect();
-        }
-
-        unsafe private static bool HasCyrillicsChars( string value )
-        {
-            fixed ( char* _base = value )
-            {
-                for ( var ptr = _base; ; ptr++ )
-                {
-                    var ch = *ptr;
-                    switch ( ch )
-                    {
-                        case '\0':
-                            return (false);
-                        case 'Ё':
-                        case 'ё':
-                            return (true);
-                        default:
-                            if ( 'А' <= ch && ch <= 'я' )
-                                return (true);
-                        break;    
-                    }
-                }
-            }
         }
     }
 
@@ -1262,5 +1197,52 @@ namespace lingvo.ld.modelbuilder
                 return ( (fileInfo.Length / KILOBYTE).ToString("N2") + " KB");
             return (fileInfo.Length.ToString("N0") + " bytes");
         }
+
+        unsafe public static bool HasCyrillicsChars( this string value )
+        {
+            fixed ( char* _base = value )
+            {
+                for ( var ptr = _base; ; ptr++ )
+                {
+                    var ch = *ptr;
+                    switch ( ch )
+                    {
+                        case '\0':
+                            return (false);
+                        case 'Ё':
+                        case 'ё':
+                            return (true);
+                        default:
+                            if ( 'А' <= ch && ch <= 'я' )
+                                return (true);
+                        break;    
+                    }
+                }
+            }
+        }
+
+        public static IEnumerable< Tuple< NGramsEnum, CutThresholdEnum > > GetProcessParams()
+        {
+            for ( var ngarms = NGramsEnum.ngram_1; ngarms <= NGramsEnum.ngram_2; ngarms++ )
+            {
+                for ( var d = CutThresholdEnum.cut_1; d <= CutThresholdEnum.cut_2; d++ )
+                {
+                    yield return (Tuple.Create( ngarms, d ));
+                }
+            }
+        }
+
+        /*public static bool AllValuesAreEquals( this float[] values )
+        {
+            var v1 = values[ 0 ];
+            for ( int i = 1, len = values.Length; i < len; i++ )
+            {
+                if ( v1 != values[ i ] )
+                {
+                    return (false);
+                }
+            }
+            return (true);
+        }*/
     }
 }

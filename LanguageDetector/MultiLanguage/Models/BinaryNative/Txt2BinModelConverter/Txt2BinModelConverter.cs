@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace lingvo.ld.MultiLanguage.modelconverter
 {
@@ -11,9 +10,9 @@ namespace lingvo.ld.MultiLanguage.modelconverter
     /// </summary>
     public struct Txt2BinModelConverterConfig
     {
-        public IMModel Model { get; set; }
-        public int?   BufferSize { get; set; }
-        public string OutputFileName { get; set; }
+        public IMModel Model                { get; set; }
+        public int?   BufferSize            { get; set; }
+        public string OutputFileName        { get; set; }
         public int?   OutputFileSizeInBytes { get; set; }
     }
 
@@ -178,7 +177,7 @@ namespace lingvo.ld.MultiLanguage.modelconverter
                 }
             }
 
-            #region [.if in result we have a single file, then rename him woithout file-number.]
+            #region [.if in result we have a single file, then rename him without file-number.]
             if ( _OutputFileNumber == 1 )
             {
                 var sourceFileName = GetOutputFileNameWithNumber();

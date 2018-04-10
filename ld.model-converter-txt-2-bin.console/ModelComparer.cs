@@ -5,12 +5,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 
 using lingvo.ld.MultiLanguage;
 
 namespace lingvo.ld.modelconverter
-{    
+{
     using WeighByLanguageNative = MModelBinaryNative.WeighByLanguageNative;
 
     /// <summary>

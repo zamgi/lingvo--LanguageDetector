@@ -30,8 +30,6 @@ namespace lingvo.core.algorithm
 
         public int Compare( word_t x, word_t y )
         {
-            //return (y.Count - x.Count);
-            
             var d = y.Count - x.Count;            
             if ( d != 0 )
                 return (d);
@@ -71,8 +69,14 @@ namespace lingvo.core.algorithm
         /// </summary>
         public sealed class result
         {
-            public string[]  Words { get; internal set; }
-            public float[][] TFiDF { get; internal set; }                        
+            internal result( string[] words, float[][] tfidf )
+            {
+                Words = words;
+                TFiDF = tfidf;
+            }
+
+            public string[]  Words { get; private set; }
+            public float[][] TFiDF { get; private set; }                        
         }
         
         private readonly NGramsEnum               _Ngrams;
@@ -370,12 +374,7 @@ namespace lingvo.core.algorithm
             GC.Collect();
 
             //result
-            var result = new result() 
-            { 
-                Words = tfidf_words, 
-                TFiDF = tfidf_matrix 
-            };
-            return (result);
+            return (new result( tfidf_words, tfidf_matrix ));
         }
         public Dictionary< string, float > ProcessOneDimension( int realDocCount )
         {
@@ -529,7 +528,7 @@ namespace lingvo.core.algorithm
             GC.Collect();
             
             //result
-            return (new result() { Words = tfidf_words, TFiDF = tfidf_matrix });
+            return (new result( tfidf_words, tfidf_matrix ));
         }
         public result Process_R()
         {
@@ -615,7 +614,7 @@ namespace lingvo.core.algorithm
             GC.Collect();
 
             //result
-            return (new result() { Words = tfidf_words, TFiDF = tfidf_matrix });
+            return (new result( tfidf_words, tfidf_matrix ));
         }
             
         private Dictionary< string, int > FillByNgrams( IList< string > words )

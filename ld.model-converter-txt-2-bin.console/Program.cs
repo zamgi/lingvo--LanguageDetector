@@ -1,19 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
-using System.IO;
-using System.IO.MemoryMappedFiles;
-using System.Linq;
 using System.Runtime;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 using lingvo.ld.MultiLanguage;
 using lingvo.ld.MultiLanguage.modelconverter;
 
 namespace lingvo.ld.modelconverter
-{    
+{
     /// <summary>
     /// 
     /// </summary>
