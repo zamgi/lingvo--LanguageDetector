@@ -1,16 +1,15 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle( "ld.model-converter-txt-2-bin.console" )]
+[assembly: AssemblyTitle("ld.model-converter-txt-2-bin.console")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("xz")]
-[assembly: AssemblyProduct( "ld.model-converter-txt-2-bin.console" )]
-[assembly: AssemblyCopyright("Copyright © xz 2017")]
+[assembly: AssemblyCompany("zamgi")]
+[assembly: AssemblyProduct("ld.model-converter-txt-2-bin.console")]
+[assembly: AssemblyCopyright("Copyright © zamgi 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
