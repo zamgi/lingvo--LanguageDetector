@@ -1079,7 +1079,7 @@ namespace lingvo.ld.modelbuilder
         private static void BuildSingleLanguage_UsePortion( build_params_t bp, string inputFolder4Language )
         {
             #region [.-0-.]
-            Console.Write( "start process language-folder: '/" + inputFolder4Language + "/'..." );
+            Console.WriteLine( "start process language-folder: '/" + inputFolder4Language + "/'..." );
 
             var _tfidf = new tfidf( bp.Ngrams, bp.CutThreshold );
             #endregion
