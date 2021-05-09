@@ -80,26 +80,6 @@ namespace lingvo.ld
         public readonly int    MAX_INPUTTEXT_LENGTH;
         public readonly int    CONCURRENT_FACTORY_INSTANCE_COUNT;
 
-
-        /*public ManyLanguageDetectorModelConfig GetManyLanguageDetectorModelConfig()
-        {
-            var modelConfig = new ManyLanguageDetectorModelConfig() { ModelDictionaryCapacity = ML_MODEL_DICTIONARY_CAPACITY };
-            foreach ( var lang in Languages.All )
-            {
-                var key = (lang == Language.RU) ? "RU-ML" : lang.ToString();
-                var modelFilename = ConfigurationManager.AppSettings[ key ];
-
-                if ( !string.IsNullOrWhiteSpace( modelFilename ) )
-                {
-                    modelFilename = Path.Combine( LANGUAGE_MODELS_FOLDER, modelFilename );
-
-                    var lconfig = new LanguageConfigAdv( lang, modelFilename );
-                    modelConfig.AddLanguageConfig( lconfig );
-                }
-            };
-            return (modelConfig);
-        }*/
-
         #region [.RussianLanguage.]
         public RDetectorConfig GetRDetectorConfig()
         {

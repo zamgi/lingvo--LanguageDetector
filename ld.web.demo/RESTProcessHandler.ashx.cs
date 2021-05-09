@@ -23,27 +23,12 @@ namespace lingvo.ld
             /// </summary>
             public struct language_info
             {
-                [JsonProperty(PropertyName="l")] public string language
-                {
-                    get;
-                    set;
-                }
-                [JsonProperty(PropertyName="n")] public string language_fullname
-                {
-                    get;
-                    set;
-                }
-                [JsonProperty(PropertyName="p")] public float  percent
-                {
-                    get;
-                    set;
-                }
+                [JsonProperty(PropertyName="l")] public string language          { get; set; }
+                [JsonProperty(PropertyName="n")] public string language_fullname { get; set; }
+                [JsonProperty(PropertyName="p")] public float  percent           { get; set; }
             }
 
-            public result( Exception ex ) : this()
-            {
-                exception_message = ex.ToString();
-            }
+            public result( Exception ex ) : this() => exception_message = ex.ToString();
             public result( LanguageInfo[] languageInfos ) : this()
             {
                 language_infos = (from li in languageInfos
@@ -57,18 +42,8 @@ namespace lingvo.ld
                                  ).ToArray();
             }
 
-            [JsonProperty(PropertyName="langs")]
-            public language_info[] language_infos
-            {
-                get;
-                private set;
-            }
-            [JsonProperty(PropertyName="err")]
-            public string          exception_message
-            {
-                get;
-                private set;
-            }
+            [JsonProperty(PropertyName="langs")] public language_info[] language_infos    { get; private set; }
+            [JsonProperty(PropertyName="err")  ] public string          exception_message { get; private set; }
         }
 
         /// <summary>
@@ -79,11 +54,9 @@ namespace lingvo.ld
             private static readonly object _SyncLock = new object();
             private readonly HttpContext _Context;
 
-            public http_context_data( HttpContext context )
-            {
-                _Context = context;
-            }
+            public http_context_data( HttpContext context ) => _Context = context;
 
+            #region comm.
             /*private ConcurrentFactory _MultiLanguageConcurrentFactory
             {
                 get { return ((ConcurrentFactory) _Context.Cache[ "_MultiLanguageConcurrentFactory" ]); }
@@ -106,6 +79,7 @@ namespace lingvo.ld
                         _Context.Cache.Remove( "_RussianLanguageConcurrentFactory" );
                 }
             }*/
+            #endregion
 
             private static ConcurrentFactory _MultiLanguageConcurrentFactory;
             private static ConcurrentFactory _RussianLanguageConcurrentFactory;
@@ -160,16 +134,9 @@ namespace lingvo.ld
             }
         }
 
-        static RESTProcessHandler()
-        {
-            Environment.CurrentDirectory = HttpContext.Current.Server.MapPath( "~/" );
-        }
+        static RESTProcessHandler() => Environment.CurrentDirectory = HttpContext.Current.Server.MapPath( "~/" );
 
-        public bool IsReusable
-        {
-            get { return (true); }
-        }
-
+        public bool IsReusable => true;
         public void ProcessRequest( HttpContext context )
         {
             #region [.log.]
@@ -196,7 +163,7 @@ namespace lingvo.ld
                     languageInfos = hcd.GetMultiLanguageConcurrentFactory().DetectLanguage( text );
                 }
 
-                Log.Info( context, text );
+                //---Log.Info( context, text );
                 context.Response.ToJson( languageInfos );
             }
             catch ( Exception ex )
@@ -205,13 +172,15 @@ namespace lingvo.ld
                 context.Response.ToJson( ex );
             }
 
+            #region comm.
             /*
             {
                 GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced );
                 GC.WaitForPendingFinalizers();
                 GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced );
             }
-            */
+            */ 
+            #endregion
         }
     }
 
@@ -230,14 +199,8 @@ namespace lingvo.ld
             return (value);
         }
 
-        public static void ToJson( this HttpResponse response, LanguageInfo[] languageInfos )
-        {
-            response.ToJson( new RESTProcessHandler.result( languageInfos ) );
-        }
-        public static void ToJson( this HttpResponse response, Exception ex )
-        {
-            response.ToJson( new RESTProcessHandler.result( ex ) );
-        }
+        public static void ToJson( this HttpResponse response, LanguageInfo[] languageInfos ) => response.ToJson( new RESTProcessHandler.result( languageInfos ) );
+        public static void ToJson( this HttpResponse response, Exception ex ) => response.ToJson( new RESTProcessHandler.result( ex ) );
         public static void ToJson( this HttpResponse response, RESTProcessHandler.result result )
         {
             response.ContentType = "application/json";
