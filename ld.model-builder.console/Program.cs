@@ -162,10 +162,7 @@ namespace lingvo.ld.modelbuilder
             public int              MaxPortionSize;
             public string[]         ClearCyrillicsCharsByLanguage;
 
-            public override string ToString()
-            {
-                return (Ngrams + "-" + CutThreshold);
-            }
+            public override string ToString() => (Ngrams + "-" + CutThreshold);
         }
 
         /// <summary>
@@ -214,20 +211,8 @@ namespace lingvo.ld.modelbuilder
                     _Sr   = new StreamReader( fileName, Config.Inst.INPUT_ENCODING );
                     _Line = _Sr.ReadLine();
                 }
+                public void Dispose() => _Sr.Dispose();
 
-                public void Dispose()
-                {
-                    _Sr.Dispose();
-                }
-
-                /*public IEnumerable< KeyValuePair< string, int > > ReadAll()
-                {
-                    for ( var line = _Sr.ReadLine(); line != null; line = _Sr.ReadLine() )
-                    {
-                        var a = line.Split( SPLIT_CHAR, StringSplitOptions.RemoveEmptyEntries );
-                        yield return (new KeyValuePair< string, int >( a[ 0 ], int.Parse( a[ 1 ] ) ));
-                    }
-                }*/
                 public word_t ReadNext()
                 {
                     if ( _Line != null )
@@ -256,12 +241,9 @@ namespace lingvo.ld.modelbuilder
                 }
 
                 public word_t word { get; set; }
-                public ngram_filereader_t ngram_filereader { get; private set; }
+                public ngram_filereader_t ngram_filereader { get; }
 
-                public void Dispose()
-                {
-                    ngram_filereader.Dispose();
-                }
+                public void Dispose() => ngram_filereader.Dispose();
             }
             /// <summary>
             /// 

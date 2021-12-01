@@ -98,20 +98,14 @@ namespace lingvo.ld.MultiLanguage
         private WeighByLanguage _Current;
         private bool _IsStarted;
 
-        public WeighByLanguageEnumerator( BucketValue bucketVal ) : this( ref bucketVal )
-        {
-        }
-        public WeighByLanguageEnumerator( ref BucketValue bucketVal )
+        public WeighByLanguageEnumerator( in BucketValue bucketVal )
         {                
             _IsStarted = false;                
             _Next = bucketVal.NextBucket;
             _Current = new WeighByLanguage() { Language = bucketVal.Language, Weight = bucketVal.Weight };
         }
 
-        public WeighByLanguage Current
-        {
-            get { return (_Current); }
-        }
+        public WeighByLanguage Current => _Current;
         public bool MoveNext()
         {
             if ( !_IsStarted )
@@ -129,60 +123,21 @@ namespace lingvo.ld.MultiLanguage
 
             return (false);
         }
-
-        public void Dispose()
-        {
-        }
-
-        object IEnumerator.Current
-        {
-            get { return (this.Current); }
-        }
-        public void Reset()
-        {
-            throw (new NotSupportedException());
-        }
-
-        WeighByLanguageEnumerator GetEnumerator()
-        {
-            return (this);
-        }
-        IEnumerator< WeighByLanguage > IEnumerable< WeighByLanguage >.GetEnumerator()
-        {
-            return (this);
-        }
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return (GetEnumerator());
-        }
+        public void Dispose() { }
+        object IEnumerator.Current => _Current;
+        public void Reset() => throw (new NotSupportedException());
+        WeighByLanguageEnumerator GetEnumerator() => this;
+        IEnumerator< WeighByLanguage > IEnumerable< WeighByLanguage >.GetEnumerator() => this;
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
-    ///// <summary>
-    ///// 
-    ///// </summary>
-    //internal sealed class WeighByLanguageEnumerable : IEnumerable< WeighByLanguage >
-    //{
-    //    public WeighByLanguageEnumerable()
-    //    {
-    //    }
-    //    WeighByLanguageEnumerator GetEnumerator()
-    //    {
-    //        return (this);
-    //    }
-    //    IEnumerator< WeighByLanguage > IEnumerable< WeighByLanguage >.GetEnumerator()
-    //    {
-    //        return (this);
-    //    }
-    //    IEnumerator IEnumerable.GetEnumerator()
-    //    {
-    //        return (GetEnumerator());
-    //    }
-    //}
 
     /// <summary>
     /// 
     /// </summary>
-    unsafe internal struct IntPtrEqualityComparer : IEqualityComparer< IntPtr >
+    unsafe internal sealed class IntPtrEqualityComparer : IEqualityComparer< IntPtr >
     {
+        public static IntPtrEqualityComparer Inst { get; } = new IntPtrEqualityComparer();
+        private IntPtrEqualityComparer() { }
         public bool Equals( IntPtr x, IntPtr y )
         {
             if ( x == y )
@@ -211,27 +166,6 @@ namespace lingvo.ld.MultiLanguage
                 ptr++;
             }
             return (n1 + n2 * 1566083941);
-
-            #region commented
-            /*
-            char* ptr = (char*) obj;
-            int n1 = 5381;
-            int n2 = 5381;
-            int n3;
-            while ( (n3 = (int) (*(ushort*) ptr)) != 0 )
-            {
-                n1 = ((n1 << 5) + n1 ^ n3);
-                n3 = (int) (*(ushort*) ptr);
-                if ( n3 == 0 )
-                {
-                    break;
-                }
-                n2 = ((n2 << 5) + n2 ^ n3);
-                ptr += 2;
-            }
-            return (n1 + n2 * 1566083941);
-            */
-            #endregion
         }            
     }
 }

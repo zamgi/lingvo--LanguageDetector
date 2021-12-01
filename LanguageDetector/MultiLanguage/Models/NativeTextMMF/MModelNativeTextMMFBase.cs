@@ -37,9 +37,7 @@ namespace lingvo.ld.MultiLanguage
         /// </summary>
         unsafe protected sealed class LanguageModelFileReaderMMF : LanguageConfig
         {
-            private LanguageModelFileReaderMMF( LanguageConfig languageConfig ) : base( languageConfig.Language, languageConfig.ModelFilename )
-            {
-            }
+            private LanguageModelFileReaderMMF( LanguageConfig languageConfig ) : base( languageConfig.Language, languageConfig.ModelFilename ) { }
 
             private void LoadModelFilenameContent( LoadModelFilenameContentCallback callbackAction )
             {
@@ -173,7 +171,7 @@ namespace lingvo.ld.MultiLanguage
                         StringsHelper.ToUpperInvariantInPlace( textPtr, pair.TextLength );
 
                         pair.TextPtr = (IntPtr) textPtr;
-                        pair.Weight = weight;
+                        pair.Weight  = weight;
 
                         callbackAction( ref pair ); 
                         #endregion

@@ -241,25 +241,18 @@ namespace lingvo.ld.MultiLanguage
         #endregion
 
         #region [.IModel.]
-        public int RecordCount
-        {
-            get { return (_Dictionary.Count); }
-        }
+        public int RecordCount => _Dictionary.Count;
         public bool TryGetValue( string ngram, out IEnumerable< WeighByLanguage > weighByLanguages )
         {
-            BucketValue bucketVal;
-            if ( _Dictionary.TryGetValue( ngram, out bucketVal ) )
+            if ( _Dictionary.TryGetValue( ngram, out var bucketVal ) )
             {
-                weighByLanguages = new WeighByLanguageEnumerator( ref bucketVal ); //bucketVal.GetWeighByLanguages();
+                weighByLanguages = new WeighByLanguageEnumerator( in bucketVal ); //bucketVal.GetWeighByLanguages();
                 return (true);
             }
             weighByLanguages = null;
             return (false);
         }
-        public IEnumerable< MModelRecord > GetAllRecords()
-        {
-            return (_Dictionary.GetAllModelRecords());
-        }        
+        public IEnumerable< MModelRecord > GetAllRecords() => _Dictionary.GetAllModelRecords();
         #endregion
     }
 }

@@ -17,51 +17,37 @@ namespace lingvo.ld.MultiLanguage
     {
         #region [.private field's.]
         private Dictionary< IntPtr, BucketValue > _Dictionary;
+        private INativeMemAllocationMediator _NativeMemAllocator;
         #endregion
 
         #region [.ctor().]
         public MModelNativeTextMMF( MModelConfig config, ModelLoadTypeEnum modelLoadType )
         {
-            //var sw = Stopwatch.StartNew();
+            const int nativeBlockAllocSize = 1024 * 1024 * 2;
+
             switch ( modelLoadType )
             {
                 case ModelLoadTypeEnum.Consecutively:
-                ConsecutivelyLoadMMF( config );
+                    _NativeMemAllocator = new NativeMemAllocationMediator( nativeBlockAllocSize );
+                    ConsecutivelyLoadMMF( config );
                 break;
 
                 case ModelLoadTypeEnum.Parallel:
-                ParallelLoadMMF( config );
+                    _NativeMemAllocator = new NativeMemAllocationMediator_ThreadSafe( nativeBlockAllocSize );
+                    ParallelLoadMMF( config, _NativeMemAllocator );
                 break;
 
                 default:
-                throw (new ArgumentException( modelLoadType.ToString() ));
+                    throw (new ArgumentException( modelLoadType.ToString() ));
             }
-            //sw.Stop();
-            //Console.WriteLine( "Elapsed: " + sw.Elapsed );        
         }
-        ~MModelNativeTextMMF()
-        {
-            DisposeNativeResources();
-        }
-
+        ~MModelNativeTextMMF() => DisposeNativeResources();
         public void Dispose()
         {
             DisposeNativeResources();
-
             GC.SuppressFinalize( this );
         }
-        private void DisposeNativeResources()
-        {
-            if ( _Dictionary != null )
-            {
-                foreach ( var ptr in _Dictionary.Keys )
-                {
-                    Marshal.FreeHGlobal( ptr );
-                }
-                _Dictionary.Clear();
-                _Dictionary = null;
-            }
-        } 
+        private void DisposeNativeResources() => _NativeMemAllocator.Dispose();
         #endregion
 
         #region [.model-dictionary loading.]
@@ -73,12 +59,12 @@ namespace lingvo.ld.MultiLanguage
             public Dictionary< IntPtr, BucketValue > Dictionary;
             public LoadModelFilenameContentCallback LoadMMFCallback;
             public int Capacity;
+            private INativeMemAllocationMediator _NativeMemAllocator;
 
+            public ParallelLoadUnit( INativeMemAllocationMediator nativeMemAllocator ) : this() => _NativeMemAllocator = nativeMemAllocator;
             unsafe private void LoadMMFCallbackRoutine( ref MModelNativeTextMMFBase.Pair pair )
             {
-                BucketValue bucketVal;
-
-                if ( Dictionary.TryGetValue( pair.TextPtr, out bucketVal ) )
+                if ( Dictionary.TryGetValue( pair.TextPtr, out var bucketVal ) )
                 {
                     var bucketRef = new BucketRef() 
                     { 
@@ -89,28 +75,10 @@ namespace lingvo.ld.MultiLanguage
                     bucketVal.NextBucket = bucketRef;
 
                     Dictionary[ pair.TextPtr ] = bucketVal;
-
-                    #region commented. previous
-                    /*
-                    var bucketRef = new BucketRef() { Language = pair.Language, Weight = pair.Weight };
-                    if ( bucketVal.NextBucket == null )
-                    {
-                        bucketVal.NextBucket = bucketRef;
-
-                        DictionaryIntptr[ pair.TextPtr ] = bucketVal;
-                    }
-                    else
-                    {
-                        var br = bucketVal.NextBucket;
-                        for (; br.NextBucket != null; br = br.NextBucket );
-                        br.NextBucket = bucketRef;
-                    }
-                    */
-                    #endregion
                 }
                 else
                 {
-                    var textPtr = StringsHelper.AllocHGlobalAndCopy( pair.TextPtr, pair.TextLength );
+                    var textPtr = _NativeMemAllocator.AllocAndCopy( (char*) pair.TextPtr, pair.TextLength );
                     Dictionary.Add( textPtr, new BucketValue( pair.Language, pair.Weight ) );
                 }
             }
@@ -119,18 +87,15 @@ namespace lingvo.ld.MultiLanguage
                 if ( Dictionary == null )
                 {
                     Capacity        = capacity;
-                    Dictionary      = new Dictionary< IntPtr, BucketValue >( capacity, default(IntPtrEqualityComparer) );
+                    Dictionary      = new Dictionary< IntPtr, BucketValue >( capacity, IntPtrEqualityComparer.Inst );
                     LoadMMFCallback = new LoadModelFilenameContentCallback( LoadMMFCallbackRoutine );
                 }
             }
 
-            public override string ToString()
-            {
-                return ("count: " + Dictionary.Count + ", (capacity: " + Capacity + ")");
-            }
+            public override string ToString() => ("count: " + Dictionary.Count + ", (capacity: " + Capacity + ")");
         }
 
-        private void ParallelLoadMMF( MModelConfig config )
+        private void ParallelLoadMMF( MModelConfig config, INativeMemAllocationMediator nativeMemAllocator )
         {
             #region [.parallel load by partitions.]
             var processorCount = Environment.ProcessorCount;
@@ -142,7 +107,7 @@ namespace lingvo.ld.MultiLanguage
 
             Parallel.ForEach( partitions,
                 new ParallelOptions() { MaxDegreeOfParallelism = processorCount },
-                () => default(ParallelLoadUnit),
+                () => new ParallelLoadUnit( nativeMemAllocator ),
                 (partition, loopState, i, unit) =>
                 {
                     const int EMPIRICALLY_CHOSEN_FUSKING_NUMBER = 27;
@@ -168,11 +133,9 @@ namespace lingvo.ld.MultiLanguage
             #endregion
 
             #region [.merge.]
-            var bucketVal = default(BucketValue);
-
             var dictionary = (0 < config.ModelDictionaryCapacity) 
-                ? new Dictionary< IntPtr, BucketValue >( config.ModelDictionaryCapacity, default(IntPtrEqualityComparer) )
-                : new Dictionary< IntPtr, BucketValue >( default(IntPtrEqualityComparer) );
+                ? new Dictionary< IntPtr, BucketValue >( config.ModelDictionaryCapacity, IntPtrEqualityComparer.Inst )
+                : new Dictionary< IntPtr, BucketValue >( IntPtrEqualityComparer.Inst );
 
             foreach ( var dict in unitBag.Select( unit => unit.Dictionary ) )
             {
@@ -181,7 +144,7 @@ namespace lingvo.ld.MultiLanguage
                     var textPtr       = pair.Key;
                     var bucketValElse = pair.Value;
 
-                    if ( dictionary.TryGetValue( textPtr, out bucketVal ) )
+                    if ( dictionary.TryGetValue( textPtr, out var bucketVal ) )
                     {
                         var bucketRef = new BucketRef()
                         {
@@ -242,8 +205,8 @@ namespace lingvo.ld.MultiLanguage
         private void ConsecutivelyLoadMMF( MModelConfig config )
         {
             _Dictionary = (0 < config.ModelDictionaryCapacity) 
-                ? new Dictionary< IntPtr, BucketValue >( config.ModelDictionaryCapacity, default(IntPtrEqualityComparer) )
-                : new Dictionary< IntPtr, BucketValue >( default(IntPtrEqualityComparer) );
+                ? new Dictionary< IntPtr, BucketValue >( config.ModelDictionaryCapacity, IntPtrEqualityComparer.Inst )
+                : new Dictionary< IntPtr, BucketValue >( IntPtrEqualityComparer.Inst );
 
             var callback = new LoadModelFilenameContentCallback( ConsecutivelyLoadMMFCallback );
 
@@ -254,9 +217,7 @@ namespace lingvo.ld.MultiLanguage
         }
         unsafe private void ConsecutivelyLoadMMFCallback( ref MModelNativeTextMMFBase.Pair pair )
         {
-            BucketValue bucketVal;
-
-            if ( _Dictionary.TryGetValue( pair.TextPtr, out bucketVal ) )
+            if ( _Dictionary.TryGetValue( pair.TextPtr, out var bucketVal ) )
             {
                 var bucketRef = new BucketRef()
                 {
@@ -267,56 +228,31 @@ namespace lingvo.ld.MultiLanguage
                 bucketVal.NextBucket = bucketRef;
 
                 _Dictionary[ pair.TextPtr ] = bucketVal;
-
-                #region commented. previous
-                /*
-                var bucketRef = new BucketRef() { Language = pair.Language, Weight = pair.Weight };
-                if ( bucketVal.NextBucket == null )
-                {
-                    bucketVal.NextBucket = bucketRef;
-
-                    _Dictionary[ pair.TextPtr ] = bucketVal;
-                }
-                else
-                {
-                    var br = bucketVal.NextBucket;
-                    for ( ; br.NextBucket != null; br = br.NextBucket ) ;
-                    br.NextBucket = bucketRef;
-                } 
-                */
-                #endregion
             }
             else
             {
-                var textPtr = StringsHelper.AllocHGlobalAndCopy( pair.TextPtr, pair.TextLength );
+                var textPtr = _NativeMemAllocator.AllocAndCopy( (char*) pair.TextPtr, pair.TextLength );
                 _Dictionary.Add( textPtr, new BucketValue( pair.Language, pair.Weight ) );
             }
         }
         #endregion
 
         #region [.IModel.]
-        public int RecordCount
-        {
-            get { return (_Dictionary.Count); }
-        }
+        public int RecordCount => _Dictionary.Count;
         unsafe public bool TryGetValue( string ngram, out IEnumerable< WeighByLanguage > weighByLanguages )
         {            
             fixed ( char* ngramPtr = ngram )
             {
-                BucketValue bucketVal;
-                if ( _Dictionary.TryGetValue( (IntPtr) ngramPtr, out bucketVal ) )
+                if ( _Dictionary.TryGetValue( (IntPtr) ngramPtr, out var bucketVal ) )
                 {
-                    weighByLanguages = new WeighByLanguageEnumerator( ref bucketVal ); //bucketVal.GetWeighByLanguages();
+                    weighByLanguages = new WeighByLanguageEnumerator( in bucketVal ); //bucketVal.GetWeighByLanguages();
                     return (true);
                 }
             }
             weighByLanguages = null;
             return (false);
         }
-        public IEnumerable< MModelRecord > GetAllRecords()
-        {
-            return (_Dictionary.GetAllModelRecords());
-        }
+        public IEnumerable< MModelRecord > GetAllRecords() => _Dictionary.GetAllModelRecords();
         #endregion
     }
 }

@@ -11,7 +11,7 @@ namespace lingvo.ld
     /// <summary>
     /// 
     /// </summary>
-    public sealed class RESTProcessHandler : IHttpHandler
+    public sealed class ProcessHandler : IHttpHandler
     {
         /// <summary>
         /// 
@@ -134,7 +134,7 @@ namespace lingvo.ld
             }
         }
 
-        static RESTProcessHandler() => Environment.CurrentDirectory = HttpContext.Current.Server.MapPath( "~/" );
+        static ProcessHandler() => Environment.CurrentDirectory = HttpContext.Current.Server.MapPath( "~/" );
 
         public bool IsReusable => true;
         public void ProcessRequest( HttpContext context )
@@ -199,9 +199,9 @@ namespace lingvo.ld
             return (value);
         }
 
-        public static void ToJson( this HttpResponse response, LanguageInfo[] languageInfos ) => response.ToJson( new RESTProcessHandler.result( languageInfos ) );
-        public static void ToJson( this HttpResponse response, Exception ex ) => response.ToJson( new RESTProcessHandler.result( ex ) );
-        public static void ToJson( this HttpResponse response, RESTProcessHandler.result result )
+        public static void ToJson( this HttpResponse response, LanguageInfo[] languageInfos ) => response.ToJson( new ProcessHandler.result( languageInfos ) );
+        public static void ToJson( this HttpResponse response, Exception ex ) => response.ToJson( new ProcessHandler.result( ex ) );
+        public static void ToJson( this HttpResponse response, ProcessHandler.result result )
         {
             response.ContentType = "application/json";
             //---response.Headers.Add( "Access-Control-Allow-Origin", "*" );

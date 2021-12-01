@@ -2,13 +2,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using lingvo.ld.MultiLanguage.RucksackPacking;
 
 namespace lingvo.ld.MultiLanguage
-{    
+{
     /// <summary>
     /// 
     /// </summary>
@@ -16,39 +15,22 @@ namespace lingvo.ld.MultiLanguage
     {
         #region [.private field's.]
         private DictionaryNative _Dictionary;
+        private NativeMemAllocationMediator_ThreadSafe _NativeMemAllocator;
         #endregion
 
         #region [.ctor().]
         public MModelDictionaryNativeMMF( MModelConfig config )
         {
-            //var sw = Stopwatch.StartNew();
-            ParallelLoadMMF( config );
-            //sw.Stop();
-            //Console.WriteLine( "Elapsed: " + sw.Elapsed );        
+            _NativeMemAllocator = new NativeMemAllocationMediator_ThreadSafe( nativeBlockAllocSize: 1024 * 1024 * 2 );
+            ParallelLoadMMF( config, _NativeMemAllocator );
         }
-        ~MModelDictionaryNativeMMF()
-        {
-            DisposeNativeResources();
-        }
-
+        ~MModelDictionaryNativeMMF() => DisposeNativeResources();
         public void Dispose()
         {
             DisposeNativeResources();
-
             GC.SuppressFinalize( this );
         }
-        private void DisposeNativeResources()
-        {
-            if ( _Dictionary != null )
-            {
-                foreach ( var ptr in _Dictionary.Keys )
-                {
-                    Marshal.FreeHGlobal( ptr );
-                }
-                _Dictionary.Dispose();
-                _Dictionary = null;
-            }
-        } 
+        private void DisposeNativeResources() => _NativeMemAllocator.Dispose();
         #endregion
 
         #region [.model-dictionary loading.]
@@ -60,24 +42,23 @@ namespace lingvo.ld.MultiLanguage
             public DictionaryNative DictionaryNative;
             public LoadModelFilenameContentCallback LoadMMFCallback;
             public int Capacity;
+            private NativeMemAllocationMediator_ThreadSafe _NativeMemAllocator;
 
+            public ParallelLoadUnit( NativeMemAllocationMediator_ThreadSafe nativeMemAllocator ) : this() => _NativeMemAllocator = nativeMemAllocator;
             public void Initialize( int capacity )
             {
                 if ( DictionaryNative == null )
                 {
                     Capacity         = capacity;
-                    DictionaryNative = new DictionaryNative( capacity );
+                    DictionaryNative = new DictionaryNative( _NativeMemAllocator, capacity );
                     LoadMMFCallback  = new LoadModelFilenameContentCallback( DictionaryNative.AddNewOrToEndOfChain );
                 }
             }
 
-            public override string ToString()
-            {
-                return ("count: " + DictionaryNative.Count + ", (capacity: " + Capacity + ")");
-            }
+            public override string ToString() => ("count: " + DictionaryNative.Count + ", (capacity: " + Capacity + ")");
         }
 
-        private void ParallelLoadMMF( MModelConfig config )
+        private void ParallelLoadMMF( MModelConfig config, NativeMemAllocationMediator_ThreadSafe nativeMemAllocator )
         {
             #region [.parallel load by partitions.]
             var processorCount = Environment.ProcessorCount;
@@ -88,7 +69,7 @@ namespace lingvo.ld.MultiLanguage
 
             Parallel.ForEach( partitions,
                 new ParallelOptions() { MaxDegreeOfParallelism = processorCount },
-                () => default(ParallelLoadUnit),
+                () => new ParallelLoadUnit( nativeMemAllocator ),
                 (partition, loopState, i, unit) =>
                 {
                     const int EMPIRICALLY_CHOSEN_FUSKING_NUMBER = 27;
@@ -114,44 +95,33 @@ namespace lingvo.ld.MultiLanguage
             #endregion
 
             #region [.merge.]
-            var dictionary = new DictionaryNative( config.ModelDictionaryCapacity );
-
+            var unionDict = new DictionaryNative( nativeMemAllocator, config.ModelDictionaryCapacity );
             foreach ( var dict in unitBag.Select( unit => unit.DictionaryNative ) )
             {
-                dictionary.MergeWith( dict );
-
-                dict.Dispose();
+                unionDict.MergeWith( dict );
             }
-
-            _Dictionary = dictionary;
+            _Dictionary = unionDict;
             unitBag = null;
             #endregion
         }
         #endregion
 
         #region [.IModel.]
-        public int RecordCount
-        {
-            get { return (_Dictionary.Count); }
-        }
+        public int RecordCount => _Dictionary.Count;
         unsafe public bool TryGetValue( string ngram, out IEnumerable< WeighByLanguage > weighByLanguages )
         {            
             fixed ( char* ngramPtr = ngram )
             {
-                BucketValue bucketVal;
-                if ( _Dictionary.TryGetValue( (IntPtr) ngramPtr, out bucketVal ) )
+                if ( _Dictionary.TryGetValue( (IntPtr) ngramPtr, out var bucketVal ) )
                 {
-                    weighByLanguages = new WeighByLanguageEnumerator( ref bucketVal ); //bucketVal.GetWeighByLanguages();
+                    weighByLanguages = new WeighByLanguageEnumerator( in bucketVal ); //bucketVal.GetWeighByLanguages();
                     return (true);
                 }
             }
             weighByLanguages = null;
             return (false);
         }
-        public IEnumerable< MModelRecord > GetAllRecords()
-        {
-            return (_Dictionary.GetAllModelRecords());
-        }
+        public IEnumerable< MModelRecord > GetAllRecords() => _Dictionary.GetAllModelRecords();
         #endregion
     }
 }

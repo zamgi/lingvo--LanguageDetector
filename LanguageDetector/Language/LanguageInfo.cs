@@ -28,10 +28,7 @@ namespace lingvo.ld
 
 #if DEBUG
         private static NumberFormatInfo NFI = new NumberFormatInfo() { NumberDecimalSeparator = "." };
-        public override string ToString()
-        {
-            return (Language.ToString() + ':' + Weight.ToString( NFI ) + " (" + Percent + "%)");
-        }  
+        public override string ToString() => (Language.ToString() + ':' + Weight.ToString( NFI ) + " (" + Percent + "%)");
 #endif
     }
 
@@ -41,10 +38,8 @@ namespace lingvo.ld
     internal sealed class LanguageInfoComparer : IComparer< LanguageInfo >
     {
         public static readonly LanguageInfoComparer Instance = new LanguageInfoComparer();
-        private LanguageInfoComparer()
-        {
-        }
-        
+        private LanguageInfoComparer() { }
+
         public int Compare( LanguageInfo x, LanguageInfo y )
         {
             var d = y.Weight - x.Weight;

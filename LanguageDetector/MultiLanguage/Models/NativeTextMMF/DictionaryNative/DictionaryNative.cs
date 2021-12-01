@@ -1,76 +1,25 @@
-﻿// ==++==
-// 
-//   Copyright (c) Microsoft Corporation.  All rights reserved.
-// 
-// ==--==
-/*============================================================
-**
-** Class:  Dictionary
-** 
-** <OWNER>Microsoft</OWNER>
-**
-** Purpose: Generic hash table implementation
-**
-** #DictionaryVersusHashtableThreadSafety
-** Hashtable has multiple reader/single writer (MR/SW) thread safety built into 
-** certain methods and properties, whereas Dictionary doesn't. If you're 
-** converting framework code that formerly used Hashtable to Dictionary, it's
-** important to consider whether callers may have taken a dependence on MR/SW
-** thread safety. If a reader writer lock is available, then that may be used
-** with a Dictionary to get the same thread safety guarantee. 
-** 
-** Reader writer locks don't exist in silverlight, so we do the following as a
-** result of removing non-generic collections from silverlight: 
-** 1. If the Hashtable was fully synchronized, then we replace it with a 
-**    Dictionary with full locks around reads/writes (same thread safety
-**    guarantee).
-** 2. Otherwise, the Hashtable has the default MR/SW thread safety behavior, 
-**    so we do one of the following on a case-by-case basis:
-**    a. If the ---- can be addressed by rearranging the code and using a temp
-**       variable (for example, it's only populated immediately after created)
-**       then we address the ---- this way and use Dictionary.
-**    b. If there's concern about degrading performance with the increased 
-**       locking, we ifdef with FEATURE_NONGENERIC_COLLECTIONS so we can at 
-**       least use Hashtable in the desktop build, but Dictionary with full 
-**       locks in silverlight builds. Note that this is heavier locking than 
-**       MR/SW, but this is the only option without rewriting (or adding back)
-**       the reader writer lock. 
-**    c. If there's no performance concern (e.g. debug-only code) we 
-**       consistently replace Hashtable with Dictionary plus full locks to 
-**       reduce complexity.
-**    d. Most of serialization is dead code in silverlight. Instead of updating
-**       those Hashtable occurences in serialization, we carved out references 
-**       to serialization such that this code doesn't need to build in 
-**       silverlight. 
-===========================================================*/
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
-using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
-using System.Security.Permissions;
-using System.Threading;
-using lingvo.core;
 
 namespace lingvo.ld.MultiLanguage
-{    
+{
     /// <summary>
     /// 
     /// </summary>
     [DebuggerDisplay("Count = {Count}")]
-    internal sealed class DictionaryNative : IDictionary< IntPtr, BucketValue >, IDisposable
+    internal sealed class DictionaryNative : IDictionary< IntPtr, BucketValue >
     {
         /// <summary>
         /// 
         /// </summary>
         private struct Entry
         {
-            public int    hashCode;    // Lower 31 bits of hash code, -1 if unused
-            public int    next;        // Index of next entry, -1 if last
-            public IntPtr   key;         // Key of entry
+            public int         hashCode;    // Lower 31 bits of hash code, -1 if unused
+            public int         next;        // Index of next entry, -1 if last
+            public IntPtr      key;         // Key of entry
             public BucketValue value;       // Value of entry
         }
 
@@ -81,24 +30,19 @@ namespace lingvo.ld.MultiLanguage
         private int _FreeCount;
         private KeyCollection _Keys;
         private ValueCollection _Values;
-        private IntPtrEqualityComparer _Comparer;        
+        private IntPtrEqualityComparer _Comparer = IntPtrEqualityComparer.Inst;
+        private INativeMemAllocationMediator _NativeMemAllocator;
 
-        public DictionaryNative( int capacity )
+        public DictionaryNative( INativeMemAllocationMediator nativeMemAllocator, int capacity )
         {
             if ( capacity < 0 ) throw (new ArgumentOutOfRangeException( "capacity" ));
+            _NativeMemAllocator = nativeMemAllocator;
             Capacity = capacity;
             Initialize( capacity );
         }
 
-        public int Count
-        {
-            get { return (_Count - _FreeCount); }
-        }
-        public int Capacity
-        {
-            get;
-            private set;
-        }
+        public int Count => (_Count - _FreeCount); 
+        public int Capacity { get; private set; }
 
         public KeyCollection Keys
         {
@@ -148,16 +92,10 @@ namespace lingvo.ld.MultiLanguage
 
                 throw (new KeyNotFoundException());
             }
-            set
-            {
-                Insert( key, value, false );
-            }
+            set => Insert( key, value, false );
         }
 
-        public void Add( IntPtr key, BucketValue value )
-        {
-            Insert( key, value, true );
-        }
+        public void Add( IntPtr key, BucketValue value ) => Insert( key, value, true );
         public void Clear()
         {
             if ( _Count > 0 )
@@ -172,10 +110,7 @@ namespace lingvo.ld.MultiLanguage
                 _FreeCount = 0;
             }
         }
-        public bool ContainsKey( IntPtr key )
-        {
-            return (FindEntry( key ) >= 0);
-        }
+        public bool ContainsKey( IntPtr key ) => (FindEntry( key ) >= 0);
         public bool Remove( IntPtr key )
         {
             int hashCode = _Comparer.GetHashCode( key ) & 0x7FFFFFFF;
@@ -195,8 +130,8 @@ namespace lingvo.ld.MultiLanguage
                     }
                     _Entries[ i ].hashCode = -1;
                     _Entries[ i ].next     = _FreeList;
-                    _Entries[ i ].key      = default(IntPtr);
-                    _Entries[ i ].value    = default(BucketValue);
+                    _Entries[ i ].key      = default;
+                    _Entries[ i ].value    = default;
                     _FreeList = i;
                     _FreeCount++;
                     return (true);
@@ -212,7 +147,7 @@ namespace lingvo.ld.MultiLanguage
                 value = _Entries[ i ].value;
                 return (true);
             }
-            value = default(BucketValue);
+            value = default;
             return (false);
         }
 
@@ -226,16 +161,6 @@ namespace lingvo.ld.MultiLanguage
                 NextBucket = bucketVal.NextBucket,
             };
         }
-        /*public bool TryAddToEndOfChain( ref LanguageNativeTextMMFConfig.Pair pair )
-        {
-            int i = FindEntry( pair.TextPtr );
-            if ( i >= 0 )
-            {
-                AddToHead( ref _Entries[ i ].value, ref pair );
-                return (true);
-            }
-            return (false);
-        }*/
         unsafe internal void AddNewOrToEndOfChain( ref MModelNativeTextMMFBase.Pair pair )
         {
             int hashCode     = _Comparer.GetHashCode( pair.TextPtr ) & 0x7FFFFFFF;
@@ -258,7 +183,7 @@ namespace lingvo.ld.MultiLanguage
             int index;
             if ( _FreeCount > 0 )
             {
-                index = _FreeList;
+                index     = _FreeList;
                 _FreeList = _Entries[ index ].next;
                 _FreeCount--;
             }
@@ -273,7 +198,7 @@ namespace lingvo.ld.MultiLanguage
                 _Count++;
             }
 
-            var textPtr = StringsHelper.AllocHGlobalAndCopy( pair.TextPtr, pair.TextLength );
+            var textPtr = _NativeMemAllocator.AllocAndCopy(  (char*) pair.TextPtr, pair.TextLength );            
 
             _Entries[ index ].hashCode = hashCode;
             _Entries[ index ].next     = _Buckets[ targetBucket ];
@@ -283,7 +208,7 @@ namespace lingvo.ld.MultiLanguage
 	        #endregion
         }
 
-        private void AddNewOrMergeWithExists( ref Entry otherEntry )
+        private void AddNewOrMergeWithExists( in Entry otherEntry )
         {
             int hashCode     = _Comparer.GetHashCode( otherEntry.key ) & 0x7FFFFFFF;
             int targetBucket = hashCode % _Buckets.Length;
@@ -348,20 +273,9 @@ namespace lingvo.ld.MultiLanguage
             {
                 if ( 0 <= dict._Entries[ index ].hashCode )
                 {
-                    AddNewOrMergeWithExists( ref dict._Entries[ index ] );
+                    AddNewOrMergeWithExists( in dict._Entries[ index ] );
                 }
             }
-        }
-
-        public void Dispose()
-        {
-            _Buckets   = null;
-            _Entries   = null;
-            _FreeList  = -1;
-            _Count     = 0;
-            _FreeCount = 0;
-            _Keys      = null;
-            _Values    = null;
         }
         //===============================================================//
 
@@ -430,10 +344,7 @@ namespace lingvo.ld.MultiLanguage
             _Buckets[ targetBucket ]   = index;
         }
 
-        private void Resize()
-        {
-            Resize( HashHelpers.ExpandPrime( _Count ), false );
-        }
+        private void Resize() => Resize( HashHelpers.ExpandPrime( _Count ), false );
         private void Resize( int newSize, bool forceNewHashCodes )
         {
             Contract.Assert( newSize >= _Entries.Length );
@@ -467,23 +378,11 @@ namespace lingvo.ld.MultiLanguage
             _Entries = newEntries;
         }
 
-        public Enumerator GetEnumerator()
-        {
-            return (new Enumerator( this, Enumerator.KeyValuePair ));
-        }
-        IEnumerator< KeyValuePair< IntPtr, BucketValue > > IEnumerable< KeyValuePair< IntPtr, BucketValue > >.GetEnumerator()
-        {
-            return (new Enumerator( this, Enumerator.KeyValuePair ));
-        }
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return (new Enumerator( this, Enumerator.KeyValuePair ));
-        }
+        public Enumerator GetEnumerator() => new Enumerator( this, Enumerator.KeyValuePair );
+        IEnumerator< KeyValuePair< IntPtr, BucketValue > > IEnumerable< KeyValuePair< IntPtr, BucketValue > >.GetEnumerator() => new Enumerator( this, Enumerator.KeyValuePair );
+        IEnumerator IEnumerable.GetEnumerator() => new Enumerator( this, Enumerator.KeyValuePair );
 
-        void ICollection< KeyValuePair< IntPtr, BucketValue > >.Add( KeyValuePair< IntPtr, BucketValue > keyValuePair )
-        {
-            Add( keyValuePair.Key, keyValuePair.Value );
-        }
+        void ICollection< KeyValuePair< IntPtr, BucketValue > >.Add( KeyValuePair< IntPtr, BucketValue > keyValuePair ) => Add( keyValuePair.Key, keyValuePair.Value );
         bool ICollection< KeyValuePair< IntPtr, BucketValue > >.Contains( KeyValuePair< IntPtr, BucketValue > keyValuePair )
         {
             int i = FindEntry( keyValuePair.Key );
@@ -503,10 +402,7 @@ namespace lingvo.ld.MultiLanguage
             }
             return (false);
         }
-        bool ICollection< KeyValuePair< IntPtr, BucketValue > >.IsReadOnly
-        {
-            get { return (false); }
-        }
+        bool ICollection< KeyValuePair< IntPtr, BucketValue > >.IsReadOnly => false;
         void ICollection< KeyValuePair< IntPtr, BucketValue > >.CopyTo( KeyValuePair< IntPtr, BucketValue >[] array, int index )
         {
             if ( array == null )
@@ -538,7 +434,6 @@ namespace lingvo.ld.MultiLanguage
         /// <summary>
         /// 
         /// </summary>
-        [Serializable]
         public struct Enumerator : IEnumerator< KeyValuePair< IntPtr, BucketValue > >, IDictionaryEnumerator
         {
             internal const int DictEntry    = 1;
@@ -556,10 +451,7 @@ namespace lingvo.ld.MultiLanguage
                 _GetEnumeratorRetType = getEnumeratorRetType;
                 _Current = new KeyValuePair< IntPtr, BucketValue >();
             }
-            public void Dispose()
-            {
-            }
-
+            public void Dispose() { }
             public bool MoveNext()
             {
                 // Use unsigned comparison since we set index to dictionary.count+1 when the enumeration ends.
@@ -579,11 +471,7 @@ namespace lingvo.ld.MultiLanguage
                 _Current = new KeyValuePair< IntPtr, BucketValue >();
                 return (false);
             }
-            public KeyValuePair< IntPtr, BucketValue > Current
-            {
-                get { return (_Current); }
-            }
-
+            public KeyValuePair< IntPtr, BucketValue > Current => _Current;
             object IEnumerator.Current
             {
                 get
@@ -608,7 +496,6 @@ namespace lingvo.ld.MultiLanguage
                 _Index   = 0;
                 _Current = new KeyValuePair< IntPtr, BucketValue >();
             }
-
             DictionaryEntry IDictionaryEnumerator.Entry
             {
                 get
@@ -617,11 +504,9 @@ namespace lingvo.ld.MultiLanguage
                     {
                         throw (new InvalidOperationException());
                     }
-
                     return (new DictionaryEntry( _Current.Key, _Current.Value ));
                 }
             }
-
             object IDictionaryEnumerator.Key
             {
                 get
@@ -630,7 +515,6 @@ namespace lingvo.ld.MultiLanguage
                     {
                         throw (new InvalidOperationException());
                     }
-
                     return (_Current.Key);
                 }
             }
@@ -642,7 +526,6 @@ namespace lingvo.ld.MultiLanguage
                     {
                         throw (new InvalidOperationException());
                     }
-
                     return (_Current.Value);
                 }
             }
@@ -652,7 +535,6 @@ namespace lingvo.ld.MultiLanguage
         /// 
         /// </summary>
         [DebuggerDisplay("Count = {Count}")]
-        [Serializable]
         public sealed class KeyCollection : ICollection< IntPtr >
         {
             private DictionaryNative _Dictionary;
@@ -666,10 +548,7 @@ namespace lingvo.ld.MultiLanguage
                 this._Dictionary = dictionary;
             }
 
-            public Enumerator GetEnumerator()
-            {
-                return (new Enumerator( _Dictionary ));
-            }
+            public Enumerator GetEnumerator() => new Enumerator( _Dictionary );
             public void CopyTo( IntPtr[] array, int index )
             {
                 if ( array == null )
@@ -694,42 +573,16 @@ namespace lingvo.ld.MultiLanguage
                     if ( entries[ i ].hashCode >= 0 ) array[ index++ ] = entries[ i ].key;
                 }
             }
-            public int Count
-            {
-                get { return (_Dictionary.Count); }
-            }
+            public int Count => _Dictionary.Count;
+            bool ICollection< IntPtr >.IsReadOnly => true;
+            void ICollection< IntPtr >.Add( IntPtr item ) => throw (new NotSupportedException());
+            void ICollection< IntPtr >.Clear() => throw (new NotSupportedException());
+            bool ICollection< IntPtr >.Contains( IntPtr item ) => _Dictionary.ContainsKey( item );
+            bool ICollection< IntPtr >.Remove( IntPtr item ) => throw (new NotSupportedException());
 
-            bool ICollection< IntPtr >.IsReadOnly
-            {
-                get { return (true); }
-            }
-            void ICollection< IntPtr >.Add( IntPtr item )
-            {
-                throw (new NotSupportedException());
-            }
-            void ICollection< IntPtr >.Clear()
-            {
-                throw (new NotSupportedException());
-            }
-            bool ICollection< IntPtr >.Contains( IntPtr item )
-            {
-                return (_Dictionary.ContainsKey( item ));
-            }
-            bool ICollection< IntPtr >.Remove( IntPtr item )
-            {
-                throw (new NotSupportedException());
-            }
+            IEnumerator< IntPtr > IEnumerable< IntPtr >.GetEnumerator() => new Enumerator( _Dictionary );
+            IEnumerator IEnumerable.GetEnumerator() => new Enumerator( _Dictionary );
 
-            IEnumerator< IntPtr > IEnumerable< IntPtr >.GetEnumerator()
-            {
-                return (new Enumerator( _Dictionary ));
-            }
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return (new Enumerator( _Dictionary ));
-            }
-
-            [Serializable]
             public struct Enumerator : IEnumerator< IntPtr >
             {
                 private DictionaryNative _Dictionary;
@@ -742,10 +595,7 @@ namespace lingvo.ld.MultiLanguage
                     _Index = 0;
                     _CurrentKey = default(IntPtr);
                 }
-                public void Dispose()
-                {
-                }
-
+                public void Dispose() { }
                 public bool MoveNext()
                 {
                     while ( (uint) _Index < (uint) _Dictionary._Count )
@@ -763,27 +613,12 @@ namespace lingvo.ld.MultiLanguage
                     _CurrentKey = default(IntPtr);
                     return (false);
                 }
-                public IntPtr Current
-                {
-                    get { return (_CurrentKey); }
-                }
-
-                object IEnumerator.Current
-                {
-                    get
-                    {
-                        if ( _Index == 0 || (_Index == _Dictionary._Count + 1) )
-                        {
-                            throw (new InvalidOperationException());
-                        }
-
-                        return (_CurrentKey);
-                    }
-                }
+                public IntPtr Current => _CurrentKey;
+                object IEnumerator.Current => _CurrentKey;
                 void IEnumerator.Reset()
                 {
                     _Index = 0;
-                    _CurrentKey = default(IntPtr);
+                    _CurrentKey = default;
                 }
             }
         }
@@ -792,11 +627,9 @@ namespace lingvo.ld.MultiLanguage
         /// 
         /// </summary>
         [DebuggerDisplay("Count = {Count}")]
-        [Serializable]
         public sealed class ValueCollection : ICollection< BucketValue >
         {
             private DictionaryNative _Dictionary;
-
             public ValueCollection( DictionaryNative dictionary )
             {
                 if ( dictionary == null )
@@ -806,10 +639,7 @@ namespace lingvo.ld.MultiLanguage
                 this._Dictionary = dictionary;
             }
 
-            public Enumerator GetEnumerator()
-            {
-                return (new Enumerator( _Dictionary ));
-            }
+            public Enumerator GetEnumerator() => new Enumerator( _Dictionary );
             public void CopyTo( BucketValue[] array, int index )
             {
                 if ( array == null )
@@ -837,42 +667,16 @@ namespace lingvo.ld.MultiLanguage
                     }
                 }
             }
-            public int Count
-            {
-                get { return (_Dictionary.Count); }
-            }
+            public int Count => _Dictionary.Count;
+            bool ICollection< BucketValue >.IsReadOnly => true;
+            void ICollection< BucketValue >.Add( BucketValue item ) => throw (new NotSupportedException());
+            bool ICollection< BucketValue >.Remove( BucketValue item ) => throw (new NotSupportedException());
+            void ICollection< BucketValue >.Clear() => throw (new NotSupportedException());
+            bool ICollection< BucketValue >.Contains( BucketValue item ) => throw (new NotSupportedException());
 
-            bool ICollection< BucketValue >.IsReadOnly
-            {
-                get { return (true); }
-            }
-            void ICollection< BucketValue >.Add( BucketValue item )
-            {
-                throw (new NotSupportedException());
-            }
-            bool ICollection< BucketValue >.Remove( BucketValue item )
-            {
-                throw (new NotSupportedException());
-            }
-            void ICollection< BucketValue >.Clear()
-            {
-                throw (new NotSupportedException());
-            }
-            bool ICollection< BucketValue >.Contains( BucketValue item )
-            {
-                throw (new NotImplementedException());
-            }
+            IEnumerator< BucketValue > IEnumerable< BucketValue >.GetEnumerator() => new Enumerator( _Dictionary );
+            IEnumerator IEnumerable.GetEnumerator() => new Enumerator( _Dictionary );
 
-            IEnumerator< BucketValue > IEnumerable< BucketValue >.GetEnumerator()
-            {
-                return (new Enumerator( _Dictionary ));
-            }
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return (new Enumerator( _Dictionary ));
-            }
-
-            [Serializable]
             public struct Enumerator : IEnumerator< BucketValue >
             {
                 private DictionaryNative _Dictionary;
@@ -885,9 +689,7 @@ namespace lingvo.ld.MultiLanguage
                     _Index = 0;
                     _CurrentValue = default(BucketValue);
                 }
-                public void Dispose()
-                {
-                }
+                public void Dispose() { }
 
                 public bool MoveNext()
                 {
@@ -905,27 +707,12 @@ namespace lingvo.ld.MultiLanguage
                     _CurrentValue = default(BucketValue);
                     return (false);
                 }
-                public BucketValue Current
-                {
-                    get { return (_CurrentValue); }
-                }
-
-                object IEnumerator.Current
-                {
-                    get
-                    {
-                        if ( _Index == 0 || (_Index == _Dictionary._Count + 1) )
-                        {
-                            throw (new InvalidOperationException());
-                        }
-
-                        return (_CurrentValue);
-                    }
-                }
+                public BucketValue Current => _CurrentValue;
+                object IEnumerator.Current => _CurrentValue;
                 void IEnumerator.Reset()
                 {
                     _Index = 0;
-                    _CurrentValue = default(BucketValue);
+                    _CurrentValue = default;
                 }
             }
         }

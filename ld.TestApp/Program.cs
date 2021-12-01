@@ -173,26 +173,27 @@ namespace lingvo.ld.TestApp
 
         private static void Test__MModelBinaryNative()
         {
-            var sw = Stopwatch.StartNew();            
-            var model = new MModelBinaryNative( Config.Inst.GetMModelBinaryNativeConfig() );
-            var count = model.RecordCount;
-            sw.Stop();
+            //using ( var m = new MModelDictionaryNativeMMF( Config.Inst.GetMModelConfig() ) )
+            //using ( var m = new MModelNativeTextMMF( Config.Inst.GetMModelConfig(), ModelLoadTypeEnum.Consecutively ) ) 
+            //{
+            //    Console.WriteLine( m.TryGetValue( "XZ", out var q ) );
+            //}
+
+            var sw = Stopwatch.StartNew();
+            using ( var model = new MModelBinaryNative( Config.Inst.GetMModelBinaryNativeConfig() ) )
+            {
+                var count = model.RecordCount;
+                sw.Stop(); Console.WriteLine( "elapsed: " + sw.Elapsed + ", count: " + count );
 
                 GCCollect();
-            Console.WriteLine( "elapsed: " + sw.Elapsed + ", count: " + count );
-            Console.ForegroundColor = ConsoleColor.DarkGray; Console.WriteLine( "\r\n[.....push enter for continue.....]" ); Console.ResetColor();
-            Console.ReadLine();
 
-            //*
-            var detector = new MDetector( Config.Inst.GetMDetectorConfig(), model );
-            var languageInfos = detector.DetectLanguage( "\r\n[.....push enter for continue.....]" );
-            //*/
+                var detector = new MDetector( Config.Inst.GetMDetectorConfig(), model );
+                var languageInfos = detector.DetectLanguage( "\r\n[.....push enter for continue.....]" );
+                Console.WriteLine( string.Join( ", ", languageInfos.Select( i => $"{i.Language}, {i.Weight}, {i.Percent} %" ) ) );
 
-            Console.Write( "disposing language model..." );
-            model.Dispose();
-            model = null;
-            detector = null;
-                GCCollect();
+                Console.Write( "disposing language model..." );
+            }
+            GCCollect();
             Console.WriteLine( "end" );
         }
 

@@ -608,7 +608,6 @@ namespace lingvo.ld.v1
         /// <summary>
         /// 
         /// </summary>
-        [Serializable]
         public struct Enumerator : IEnumerator< KeyValuePair< IntPtr, BucketValue > >, IDictionaryEnumerator
         {
             internal const int DictEntry    = 1;
@@ -722,7 +721,6 @@ namespace lingvo.ld.v1
         /// 
         /// </summary>
         [DebuggerDisplay("Count = {Count}")]
-        [Serializable]
         public sealed class KeyCollection : ICollection< IntPtr >
         {
             private DictionaryNative _Dictionary;
@@ -799,7 +797,6 @@ namespace lingvo.ld.v1
                 return (new Enumerator( _Dictionary ));
             }
 
-            [Serializable]
             public struct Enumerator : IEnumerator< IntPtr >
             {
                 private DictionaryNative _Dictionary;
@@ -862,7 +859,6 @@ namespace lingvo.ld.v1
         /// 
         /// </summary>
         [DebuggerDisplay("Count = {Count}")]
-        [Serializable]
         public sealed class ValueCollection : ICollection< BucketValue >
         {
             private DictionaryNative _Dictionary;
@@ -940,7 +936,6 @@ namespace lingvo.ld.v1
                 return new Enumerator( _Dictionary );
             }
 
-            [Serializable]
             public struct Enumerator : IEnumerator< BucketValue >
             {
                 private DictionaryNative _Dictionary;

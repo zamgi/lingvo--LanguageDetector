@@ -9,11 +9,7 @@ namespace lingvo.core
     unsafe internal static class StringsHelper
     {
         private static char* _UPPER_INVARIANT_MAP;
-
-        static StringsHelper()
-        {
-            _UPPER_INVARIANT_MAP = xlat_Unsafe.Inst._UPPER_INVARIANT_MAP;
-        }
+        static StringsHelper() => _UPPER_INVARIANT_MAP = xlat_Unsafe.Inst._UPPER_INVARIANT_MAP;
 
         /// <summary>
         /// 
@@ -341,30 +337,6 @@ namespace lingvo.core
             }
             return (str);
         }
-        public static string ToString( IntPtr value )
-        {
-            return (ToString( (char*) value ));
-        }
-        public static string ToString( IntPtr value, int length )
-        {
-            return (ToString( (char*) value, length ));
-        }
-
-        public static IntPtr AllocHGlobalAndCopy( char* source, int sourceLength )
-        {
-            //alloc with include zero-'\0' end-of-string
-            var destPtr = Marshal.AllocHGlobal( (sourceLength + 1) * sizeof(char) );
-            var destination = (char*) destPtr;
-            for ( ; 0 < sourceLength; sourceLength-- )
-            {
-                *(destination++) = *(source++);
-            }
-            *destination = '\0';
-            return (destPtr);
-        }
-        public static IntPtr AllocHGlobalAndCopy( IntPtr source, int sourceLength )
-        {
-            return (AllocHGlobalAndCopy( (char*) source, sourceLength ));
-        }
+        public static string ToString( IntPtr value ) => ToString( (char*) value );
     }
 }
