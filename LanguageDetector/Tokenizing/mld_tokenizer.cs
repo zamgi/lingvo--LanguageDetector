@@ -34,34 +34,35 @@ namespace lingvo.tokenizing
         /// </summary>
         unsafe private sealed class UnsafeConst
         {
-            #region [.static & xlat table's.]
-            public static readonly char*   MAX_PTR = (char*) (0xffffffffFFFFFFFF);
-            private const string           INCLUDE_INTERPRETE_AS_WHITESPACE = "¥©¤¦§®¶€™<>";
-            private static readonly char[] EXCLUDE_INTERPRETE_AS_WHITESPACE = new char[] { '\u0026', /* 0x26   , 38   , '&' */
-                                                                                           '\u0027', /* 0x27   , 39   , ''' */
-                                                                                           '\u002D', /* 0x2D   , 45   , '-' */
-                                                                                           '\u002E', /* 0x2E   , 46   , '.' */
-                                                                                           '\u005F', /* 0x5F   , 95   , '_' */
-                                                                                           '\u00AD', /* 0xAD   , 173  , '­' */
-                                                                                           '\u055A', /* 0x55A  , 1370 , '՚' */
-                                                                                           '\u055B', /* 0x55B  , 1371 , '՛' */
-                                                                                           '\u055D', /* 0x55D  , 1373 , '՝' */
-                                                                                           '\u2012', /* 0x2012 , 8210 , '‒' */
-                                                                                           '\u2013', /* 0x2013 , 8211 , '–' */
-                                                                                           '\u2014', /* 0x2014 , 8212 , '—' */
-                                                                                           '\u2015', /* 0x2015 , 8213 , '―' */
-                                                                                           '\u2018', /* 0x2018 , 8216 , '‘' */
-                                                                                           '\u2019', /* 0x2019 , 8217 , '’' */
-                                                                                           '\u201B', /* 0x201B , 8219 , '‛' */
-                                                                                         };
-            private static readonly string INCLUDE_DIGIT_WORD_CHARS = ";,:./\\- –〃´°";
-            #endregion
-
+            public static readonly char* MAX_PTR = (char*) (0xffffffffFFFFFFFF);
             public readonly bool* _INTERPRETE_AS_WHITESPACE;
             public readonly bool* _DIGIT_WORD_CHARS;
 
+            public static readonly UnsafeConst Inst = new UnsafeConst();
             private UnsafeConst()
             {
+                #region [.xlat table's.]
+                const string INCLUDE_INTERPRETE_AS_WHITESPACE = "¥©¤¦§®¶€™<>";
+                const string INCLUDE_DIGIT_WORD_CHARS         = ";,:./\\- –〃´°";
+                var          EXCLUDE_INTERPRETE_AS_WHITESPACE = new char[] { '\u0026', /* 0x26   , 38   , '&' */
+                                                                             '\u0027', /* 0x27   , 39   , ''' */
+                                                                             '\u002D', /* 0x2D   , 45   , '-' */
+                                                                             '\u002E', /* 0x2E   , 46   , '.' */
+                                                                             '\u005F', /* 0x5F   , 95   , '_' */
+                                                                             '\u00AD', /* 0xAD   , 173  , '­' */
+                                                                             '\u055A', /* 0x55A  , 1370 , '՚' */
+                                                                             '\u055B', /* 0x55B  , 1371 , '՛' */
+                                                                             '\u055D', /* 0x55D  , 1373 , '՝' */
+                                                                             '\u2012', /* 0x2012 , 8210 , '‒' */
+                                                                             '\u2013', /* 0x2013 , 8211 , '–' */
+                                                                             '\u2014', /* 0x2014 , 8212 , '—' */
+                                                                             '\u2015', /* 0x2015 , 8213 , '―' */
+                                                                             '\u2018', /* 0x2018 , 8216 , '‘' */
+                                                                             '\u2019', /* 0x2019 , 8217 , '’' */
+                                                                             '\u201B', /* 0x201B , 8219 , '‛' */
+                                                                           };
+                #endregion
+
                 var INTERPRETE_AS_WHITESPACE = new bool[ char.MaxValue - char.MinValue + 1 ];
                 var DIGIT_WORD_CHARS         = new bool[ char.MaxValue - char.MinValue + 1 ];
 
@@ -99,10 +100,22 @@ namespace lingvo.tokenizing
 
                 var DIGIT_WORD_CHARS_GCHandle = GCHandle.Alloc( DIGIT_WORD_CHARS, GCHandleType.Pinned );
                 _DIGIT_WORD_CHARS = (bool*) DIGIT_WORD_CHARS_GCHandle.AddrOfPinnedObject().ToPointer();
-            }
-
-            public static readonly UnsafeConst Inst = new UnsafeConst();
+            }            
         }
+
+        #region [.cctor().]
+        private static readonly CharType* _CTM;
+        private static readonly char*     _UIM;
+        private static readonly bool*     _DWC;
+        private static readonly bool*     _IAW;
+        static mld_tokenizer()
+        {
+            _UIM = xlat_Unsafe.Inst._UPPER_INVARIANT_MAP;
+            _CTM = xlat_Unsafe.Inst._CHARTYPE_MAP;
+            _IAW = UnsafeConst.Inst._INTERPRETE_AS_WHITESPACE;
+            _DWC = UnsafeConst.Inst._DIGIT_WORD_CHARS;
+        }
+        #endregion
 
         #region [.private field's.]
         private const int DEFAULT_WORDCAPACITY      = 1000;
@@ -111,10 +124,6 @@ namespace lingvo.tokenizing
         private readonly UrlDetector    _UrlDetector;
         private readonly List< string > _Words;
         private readonly StringBuilder  _NgramsSB;
-        private readonly CharType*      _CTM;
-        private readonly char*          _UIM;
-        private readonly bool*          _DWC;
-        private readonly bool*          _IAW;
         private char*                   _BASE;
         private char*                   _Ptr;
         private int                     _StartIndex;
@@ -127,57 +136,46 @@ namespace lingvo.tokenizing
         #endregion
 
         #region [.ctor().]
-        public mld_tokenizer( UrlDetectorModel urlModel ) : this( urlModel, DEFAULT_WORDCAPACITY )
-        {
-        }
+        public mld_tokenizer( UrlDetectorModel urlModel ) : this( urlModel, DEFAULT_WORDCAPACITY ) { }
         public mld_tokenizer( UrlDetectorModel urlModel, int wordCapacity )
         {
-            var urlConfig = new UrlDetectorConfig()
-            {
-                Model          = urlModel,
-                UrlExtractMode = UrlDetector.UrlExtractModeEnum.Position,
-            };
+            var urlConfig = new UrlDetectorConfig( urlModel, UrlDetector.UrlExtractModeEnum.Position );
             _UrlDetector = new UrlDetector( urlConfig );
             _Words       = new List< string >( Math.Max( DEFAULT_WORDCAPACITY, wordCapacity ) );
             _NgramsSB    = new StringBuilder();
             _AddWordToListAction = new Action< string >( AddWordToList );
 
-            _UIM = xlat_Unsafe.Inst._UPPER_INVARIANT_MAP;
-            _CTM = xlat_Unsafe.Inst._CHARTYPE_MAP;
-            _IAW = UnsafeConst.Inst._INTERPRETE_AS_WHITESPACE;
-            _DWC = UnsafeConst.Inst._DIGIT_WORD_CHARS;
-
-            //--//
             ReAllocWordToUpperBuffer( DEFAULT_WORDTOUPPERBUFFER );
         }
 
         private void ReAllocWordToUpperBuffer( int newBufferSize )
         {
-            DisposeNativeResources();
+            FreeWordToUpperBuffer();
 
             _WordToUpperBufferSize = newBufferSize;
             var wordToUpperBuffer  = new char[ _WordToUpperBufferSize ];
             _WordToUpperBufferGCHandle = GCHandle.Alloc( wordToUpperBuffer, GCHandleType.Pinned );
             _WordToUpperBufferPtrBase  = (char*) _WordToUpperBufferGCHandle.AddrOfPinnedObject().ToPointer();
         }
-
-        ~mld_tokenizer()
-        {
-            DisposeNativeResources();
-        }
-        public void Dispose()
-        {
-            DisposeNativeResources();
-
-            GC.SuppressFinalize( this );
-        }
-        private void DisposeNativeResources()
+        private void FreeWordToUpperBuffer()
         {
             if ( _WordToUpperBufferPtrBase != null )
             {
                 _WordToUpperBufferGCHandle.Free();
                 _WordToUpperBufferPtrBase = null;
             }
+        }
+
+        ~mld_tokenizer() => DisposeNativeResources();
+        public void Dispose()
+        {
+            DisposeNativeResources();
+            GC.SuppressFinalize( this );
+        }
+        private void DisposeNativeResources()
+        {
+            FreeWordToUpperBuffer();
+            _UrlDetector.Dispose();
         }
         #endregion
 
@@ -187,10 +185,7 @@ namespace lingvo.tokenizing
             Run( text, _AddWordToListAction );
             return (_Words);
         }
-        private void AddWordToList( string word )
-        {
-            _Words.Add( word );
-        }
+        private void AddWordToList( string word ) => _Words.Add( word );
 
         unsafe public void Run( string text, Action< string > processWordAction )
         {
@@ -359,9 +354,6 @@ namespace lingvo.tokenizing
             var url = _UrlDetector.AllocateSingleUrl( _Ptr );
             if ( url != null )
             {
-#if DEBUG
-var xxx = new string ( _BASE, url.startIndex, url.length );
-#endif
                 _Ptr = _BASE + url.startIndex + url.length - 1;
                 _StartIndex = (int)(_Ptr - _BASE + 1);
                 _Length = 0;
@@ -456,230 +448,5 @@ var xxx = new string ( _BASE, url.startIndex, url.length );
             }
             return (true);
         }
-
-        #region [.ngrams creating.]
-        public HashSet< string > ToHashset( string text, NGramsType ngramsType )
-        {
-            var hs = new HashSet< string >();
-            FillHashset( hs, text, ngramsType );
-            return (hs);
-        }
-        public void FillHashset( HashSet< string > hs, string text, NGramsType ngramsType )
-        {
-            var terms = Run( text ); //Tokenizer.ParseText( text );
-
-            hs.Clear();
-            //NGramsType.NGram_1:
-            foreach ( var term in terms )
-            {
-                if ( term != null )
-                {
-                    hs.Add( term );
-                }
-            }
-
-            var ngrams = default(IEnumerable< string >);
-            switch ( ngramsType )
-            {
-                case NGramsType.NGram_2:
-                    ngrams = GetNGrams_2( terms );
-                break;
-                case NGramsType.NGram_3:
-                    ngrams = GetNGrams_2( terms ).Concat( GetNGrams_3( terms ) );
-                break;
-                case NGramsType.NGram_4:
-                    ngrams = GetNGrams_2( terms ).Concat( GetNGrams_3( terms ) ).Concat( GetNGrams_4( terms ) );
-                break;
-            }
-
-            if ( ngrams != null )
-            {
-                foreach ( var ngram in ngrams )
-                {
-                    hs.Add( ngram );
-                }
-                ngrams = null;
-            }
-            terms = null;
-        }
-		
-        private IEnumerable< string > GetNGrams_2( IList< string > terms )
-        {
-            var t1 = default(string);
-            var t2 = default(string);
-            for ( int i = 0, len = terms.Count - 1; i < len; i++ )
-            {
-                while (true)
-                {
-                    t1 = terms[ i ];
-                    if ( t1 != null )
-                        break;
-                    i++;
-                    if ( len <= i )
-                        yield break;
-                }
-
-                while (true)
-                {
-                    t2 = terms[ i + 1 ];
-                    if ( t2 != null )
-                        break;
-                    i++;
-                    if ( len <= i )
-                        yield break;
-                }
-
-                _NgramsSB.Clear().Append( t1 ).Append( ' ' ).Append( t2 );
-                yield return (_NgramsSB.ToString());
-            }
-        }
-        private IEnumerable< string > GetNGrams_3( IList< string > terms )
-        {
-            var t1 = default(string);
-            var t2 = default(string);
-            var t3 = default(string);
-            for ( int i = 0, len = terms.Count - 2; i < len; i++ )
-            {
-                while (true)
-                {
-                    t1 = terms[ i ];
-                    if ( t1 != null )
-                        break;
-                    i++;
-                    if ( len <= i )
-                        yield break;
-                }
-
-                while (true)
-                {
-                    t2 = terms[ i + 1 ];
-                    if ( t2 != null )
-                        break;
-                    i++;
-                    if ( len <= i )
-                        yield break;
-                }
-
-                while (true)
-                {
-                    t3 = terms[ i + 2 ];
-                    if ( t3 != null )
-                        break;
-                    i++;
-                    if ( len <= i )
-                        yield break;
-                }
-
-                _NgramsSB.Clear().Append( t1 ).Append( ' ' ).Append( t2 ).Append( ' ' ).Append( t3 );
-                yield return (_NgramsSB.ToString());
-            }
-        }
-        private IEnumerable< string > GetNGrams_4( IList< string > terms )
-        {
-            var t1 = default(string);
-            var t2 = default(string);
-            var t3 = default(string);
-            var t4 = default(string);
-            for ( int i = 0, len = terms.Count - 3; i < len; i++ )
-            {
-                while (true)
-                {
-                    t1 = terms[ i ];
-                    if ( t1 != null )
-                        break;
-                    i++;
-                    if ( len <= i )
-                        yield break;
-                }
-
-                while (true)
-                {
-                    t2 = terms[ i + 1 ];
-                    if ( t2 != null )
-                        break;
-                    i++;
-                    if ( len <= i )
-                        yield break;
-                }
-
-                while (true)
-                {
-                    t3 = terms[ i + 2 ];
-                    if ( t3 != null )
-                        break;
-                    i++;
-                    if ( len <= i )
-                        yield break;
-                }
-
-                while (true)
-                {
-                    t4 = terms[ i + 3 ];
-                    if ( t4 != null )
-                        break;
-                    i++;
-                    if ( len <= i )
-                        yield break;
-                }
-
-                _NgramsSB.Clear().Append( t1 ).Append( ' ' ).Append( t2 ).Append( ' ' ).Append( t3 ).Append( ' ' ).Append( t4 );
-                yield return (_NgramsSB.ToString());
-            }
-        }
-
-		public void Fill_TF_Dictionary( Dictionary< string, int > tfDictionary, string text, NGramsType ngramsType )
-        {
-            var terms = Run( text );
-
-            tfDictionary.Clear();
-            var count = default(int);
-            //NGramsType.NGram_1:
-            foreach ( var term in terms )
-            {
-                //if ( term != null )
-                //{
-				if ( tfDictionary.TryGetValue( term, out count ) )
-                {
-					tfDictionary[ term ] = count + 1;
-				}
-				else 
-                {
-			        tfDictionary.Add( term, 1 );
-				}
-                //}
-            }
-
-            var ngrams = default(IEnumerable< string >);
-            switch ( ngramsType )
-            {
-                case NGramsType.NGram_2:
-                    ngrams = GetNGrams_2( terms );
-                break;
-                case NGramsType.NGram_3:
-                    ngrams = GetNGrams_2( terms ).Concat( GetNGrams_3( terms ) );
-                break;
-                case NGramsType.NGram_4:
-                    ngrams = GetNGrams_2( terms ).Concat( GetNGrams_3( terms ) ).Concat( GetNGrams_4( terms ) );
-                break;
-            }
-
-            if ( ngrams != null )
-            {
-                foreach ( var ngram in ngrams )
-                {
-				    if ( tfDictionary.TryGetValue( ngram, out count ) )
-                    {
-					    tfDictionary[ ngram ] = count + 1;
-				    }
-				    else 
-                    {
-			            tfDictionary.Add( ngram, 1 );
-				    }
-                }
-                ngrams = null;
-            }
-            terms = null;
-        }
-        #endregion
     }
 }

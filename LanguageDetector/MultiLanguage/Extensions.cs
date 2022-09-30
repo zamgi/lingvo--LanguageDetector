@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 using lingvo.core;
+
+using M = System.Runtime.CompilerServices.MethodImplAttribute;
+using O = System.Runtime.CompilerServices.MethodImplOptions;
 
 namespace lingvo.ld.MultiLanguage
 {
@@ -12,21 +13,13 @@ namespace lingvo.ld.MultiLanguage
     /// </summary>
     internal static class Extensions
     {
-        private static MModelRecord ToModelRecord( this KeyValuePair< string, BucketValue > pair )
-        {
-            return (new MModelRecord() { Ngram            = pair.Key, 
-                                        WeighByLanguages = new WeighByLanguageEnumerator( pair.Value ) });
-        }
-        private static MModelRecord ToModelRecord( this KeyValuePair< IntPtr, BucketValue > pair )
-        {
-            return (new MModelRecord() { Ngram            = StringsHelper.ToString( pair.Key ), 
-                                        WeighByLanguages = new WeighByLanguageEnumerator( pair.Value ) });
-        }
-        /*private static ModelRecord ToModelRecord( this KeyValuePair< IntPtr, IntPtr > pair )
-        {
-            return (new ModelRecord() { Ngram            = StringsHelper.ToString( pair.Key ), 
-                                        WeighByLanguages = new WeighByLanguageEnumerator( pair.Value ) });
-        }*/
+        [M(O.AggressiveInlining)] 
+        private static MModelRecord ToModelRecord( this in KeyValuePair< string, BucketValue > p ) => new MModelRecord() { Ngram            = p.Key, 
+                                                                                                                           WeighByLanguages = new WeighByLanguageEnumerator( p.Value ) };
+
+        [M(O.AggressiveInlining)] 
+        private static MModelRecord ToModelRecord( this in KeyValuePair< IntPtr, BucketValue > p ) => new MModelRecord() { Ngram            = StringsHelper.ToString( p.Key ), 
+                                                                                                                           WeighByLanguages = new WeighByLanguageEnumerator( p.Value ) };
 
         public static IEnumerable< MModelRecord > GetAllModelRecords( this Dictionary< string, BucketValue > dict )
         {
@@ -49,12 +42,5 @@ namespace lingvo.ld.MultiLanguage
                 yield return (p.ToModelRecord());
             }             
         }
-        /*public static IEnumerable< ModelRecord > GetAllModelRecords( this Dictionary< IntPtr, IntPtr > dict )
-        {
-            foreach ( var p in dict )
-            {
-                yield return (p.ToModelRecord());
-            }
-        }*/
     }
 }

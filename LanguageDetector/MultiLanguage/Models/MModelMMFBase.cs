@@ -25,10 +25,7 @@ namespace lingvo.ld.MultiLanguage
             public char* Start;
             public int   Length;
 #if DEBUG
-            public override string ToString()
-            {
-                return (StringsHelper.ToString( Start, Length ));
-            } 
+            public override string ToString() => StringsHelper.ToString( Start, Length );
 #endif
         }
 
@@ -54,7 +51,7 @@ namespace lingvo.ld.MultiLanguage
             private NativeString _NativeString;
 
             private EnumeratorMMF( string fileName )
-            {                    
+            {
                 _Encoding           = Encoding.UTF8;
                 _CharBufferLength   = BUFFER_SIZE;
                 _CharBuffer         = new char[ _CharBufferLength ];
@@ -63,7 +60,11 @@ namespace lingvo.ld.MultiLanguage
                 _NativeString       = NativeString.EMPTY;
                 
                 _FS  = new FileStream( fileName, FileMode.Open, FileAccess.Read, FileShare.Read, BUFFER_SIZE, FileOptions.SequentialScan );
+#if NETSTANDARD || NETCOREAPP
+                _MMF = MemoryMappedFile.CreateFromFile( _FS, null, 0L, MemoryMappedFileAccess.Read, HandleInheritability.None, true );
+#else
                 _MMF = MemoryMappedFile.CreateFromFile( _FS, null, 0L, MemoryMappedFileAccess.Read, new MemoryMappedFileSecurity(), HandleInheritability.None, true );
+#endif                 
                 _Accessor = _MMF.CreateViewAccessor( 0L, 0L, MemoryMappedFileAccess.Read );
 
                 _Accessor.SafeMemoryMappedViewHandle.AcquirePointer( ref _Buffer );
@@ -77,15 +78,10 @@ namespace lingvo.ld.MultiLanguage
                 }
                 _EndBuffer = _Buffer + length;
             }
-            ~EnumeratorMMF()
-            {
-                DisposeNativeResources();
-            }
-
+            ~EnumeratorMMF() => DisposeNativeResources();
             public void Dispose()
             {
                 DisposeNativeResources();
-
                 GC.SuppressFinalize( this );
             }
             private void DisposeNativeResources()
@@ -114,10 +110,7 @@ namespace lingvo.ld.MultiLanguage
                 }
             }
 
-            public NativeString Current
-            {
-                get { return (_NativeString); }
-            }
+            public NativeString Current => _NativeString;
             public bool MoveNext()
             {
                 var start = _Buffer;
@@ -223,27 +216,14 @@ namespace lingvo.ld.MultiLanguage
                 return (false);
             }
 
-            object IEnumerator.Current
-            {
-                get { return (Current); }
-            }
-            public void Reset()
-            {
-                throw (new NotSupportedException());
-            }
+            object IEnumerator.Current => Current;
+            public void Reset() => throw (new NotSupportedException());
 
-            public static EnumeratorMMF Create( string fileName )
-            {
-                return (new EnumeratorMMF( fileName ));
-            }
+            public static EnumeratorMMF Create( string fileName ) => new EnumeratorMMF( fileName );
         }
 
 
         protected static CharType* _CTM;
-
-        static MModelMMFBase()
-        {
-            _CTM = xlat_Unsafe.Inst._CHARTYPE_MAP;
-        }
+        static MModelMMFBase() => _CTM = xlat_Unsafe.Inst._CHARTYPE_MAP;
     }
 }

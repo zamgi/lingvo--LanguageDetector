@@ -17,18 +17,11 @@ namespace lingvo.ld.MultiLanguage
         /// </summary>
         public static class FuskingTraitor
         {
-            public static Dictionary< string, BucketValue > GetDictionary( MModelClassic model )
-            {
-                return (model._Dictionary);
-            }
+            public static Dictionary< string, BucketValue > GetDictionary( MModelClassic model ) => model._Dictionary;
         } 
 #endif
-
-        #region [.private field's.]
-        private Dictionary< string, BucketValue > _Dictionary;
-        #endregion
-
         #region [.ctor().]
+        private Dictionary< string, BucketValue > _Dictionary;
         public MModelClassic( MModelConfig config )
         {
             //var sw = Stopwatch.StartNew();
@@ -100,8 +93,6 @@ namespace lingvo.ld.MultiLanguage
                 }
             );
 
-            var bucketVal = default(BucketValue);
-
             _Dictionary = dictBag.First();
             foreach ( var dict in dictBag.Skip( 1 ) )
             {
@@ -110,7 +101,7 @@ namespace lingvo.ld.MultiLanguage
                     var text          = pair.Key;
                     var bucketValElse = pair.Value;
 
-                    if ( _Dictionary.TryGetValue( text, out bucketVal ) )
+                    if ( _Dictionary.TryGetValue( text, out var bucketVal ) )
                     {
                         var bucketRef = new BucketRef() 
                         { 
@@ -152,27 +143,25 @@ namespace lingvo.ld.MultiLanguage
                 new ParallelOptions() { MaxDegreeOfParallelism = concurrencyLevel },
                 (languageConfig) =>
                 {                    
-                    var _bucketVal = default(BucketValue);
-
                     foreach ( var pair in languageConfig.GetModelFilenameContent() )
                     {
                         var text   = pair.Key.ToUpperInvariant();
                         var weight = pair.Value;
 
-                        if ( cdict.TryGetValue( text, out _bucketVal ) )
+                        if ( cdict.TryGetValue( text, out var bucketVal ) )
                         {
                             lock ( cdict )
                             {
                                 var bucketRef = new BucketRef() { Language = languageConfig.Language, Weight = weight };
-                                if ( _bucketVal.NextBucket == null )
+                                if ( bucketVal.NextBucket == null )
                                 {
-                                    _bucketVal.NextBucket = bucketRef;
+                                    bucketVal.NextBucket = bucketRef;
 
-                                    cdict[ text ] = _bucketVal;
+                                    cdict[ text ] = bucketVal;
                                 }
                                 else
                                 {
-                                    var br = _bucketVal.NextBucket;
+                                    var br = bucketVal.NextBucket;
                                     for (; br.NextBucket != null; br = br.NextBucket );
                                     br.NextBucket = bucketRef;
                                 }
@@ -196,8 +185,6 @@ namespace lingvo.ld.MultiLanguage
                          ? new Dictionary< string, BucketValue >( config.ModelDictionaryCapacity )
                          : new Dictionary< string, BucketValue >();
 
-            var bucketVal = default(BucketValue);
-
             foreach ( var languageConfig in config.LanguageConfigs )
             {
                 foreach ( var pair in languageConfig.GetModelFilenameContent() )
@@ -205,7 +192,7 @@ namespace lingvo.ld.MultiLanguage
                     var text   = pair.Key.ToUpperInvariant();
                     var weight = pair.Value;
 
-                    if ( _Dictionary.TryGetValue( text, out bucketVal ) )
+                    if ( _Dictionary.TryGetValue( text, out var bucketVal ) )
                     {
                         #region
                         /*

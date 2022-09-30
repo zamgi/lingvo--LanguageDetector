@@ -32,10 +32,10 @@ namespace lingvo.ld.MultiLanguage.modelconverter
         private int    _OutputFileSizeInBytes;
         private int    _OutputFileNumber;        
 
-        private Txt2BinModelConverter( ref Txt2BinModelConverterConfig config )
+        private Txt2BinModelConverter( in Txt2BinModelConverterConfig config )
         {
-            if ( config.Model == null ) throw (new ArgumentNullException( "config.Model" ));
-            if ( string.IsNullOrWhiteSpace( config.OutputFileName ) ) throw (new ArgumentNullException( "config.OutputFileName" ));
+            if ( config.Model == null ) throw (new ArgumentNullException( nameof(config.Model) ));
+            if ( string.IsNullOrWhiteSpace( config.OutputFileName ) ) throw (new ArgumentNullException( nameof(config.OutputFileName) ));
 
 
             _Model                 = config.Model;
@@ -51,10 +51,7 @@ namespace lingvo.ld.MultiLanguage.modelconverter
             _OutputFileNumber         = 0;
         }
 
-        private void   IncrementOutputFileNumber()
-        {
-            _OutputFileNumber++;
-        }
+        private void   IncrementOutputFileNumber() => _OutputFileNumber++;
         private void   EnsureOutputDirectoryExists()
         {
             if ( !Directory.Exists( _OutputDirectoryName ) )
@@ -62,16 +59,8 @@ namespace lingvo.ld.MultiLanguage.modelconverter
                 Directory.CreateDirectory( _OutputDirectoryName );
             }
         }        
-        private string GetOutputFileNameWithNumber()
-        {
-            var fileName = Path.Combine( _OutputDirectoryName, _OutputFileNamePattern + '-' + _OutputFileNumber + _OutputFileExtension );
-            return (fileName);
-        }
-        private string GetSingleOutputFileName()
-        {
-            var fileName = Path.Combine( _OutputDirectoryName, _OutputFileNamePattern + _OutputFileExtension );
-            return (fileName);
-        }
+        private string GetOutputFileNameWithNumber() => Path.Combine( _OutputDirectoryName, _OutputFileNamePattern + '-' + _OutputFileNumber + _OutputFileExtension );
+        private string GetSingleOutputFileName() => Path.Combine( _OutputDirectoryName, _OutputFileNamePattern + _OutputFileExtension );
         private static void DeleteFileIfExists( string fileName )
         {
             if ( File.Exists( fileName ) )
@@ -90,8 +79,8 @@ namespace lingvo.ld.MultiLanguage.modelconverter
 
         unsafe private IList< string > Save()
         {
-            var bufferSize = _BufferSize;
-            var tempBuffer = new byte[ bufferSize ];
+            var bufferSize      = _BufferSize;
+            var tempBuffer      = new byte[ bufferSize ];
             var outputFileNames = new List< string >(); 
 
             fixed ( byte* tempBufferBase = tempBuffer )
@@ -194,9 +183,9 @@ namespace lingvo.ld.MultiLanguage.modelconverter
             return (outputFileNames);
         }
 
-        public static IList< string > Run( Txt2BinModelConverterConfig config )
+        public static IList< string > Run( in Txt2BinModelConverterConfig config )
         {
-            var converter = new Txt2BinModelConverter( ref config );
+            var converter = new Txt2BinModelConverter( config );
             var outputFileNames = converter.Save();
             return (outputFileNames);
         }

@@ -12,7 +12,7 @@ namespace lingvo.urls
     /// <summary>
     /// 
     /// </summary>
-    public class url_t
+    public sealed class url_t
     {
         public string  value;
         public int     startIndex;
@@ -25,35 +25,23 @@ namespace lingvo.urls
             return ("[" + startIndex + ":" + length + "]");
         }
 
-        internal url_t create_copy()
+        internal url_t create_copy() => new url_t()
         {
-            var url = new url_t()
-            {
-                startIndex = this.startIndex,
-                length     = this.length,
-                value      = this.value,
-            };
-            return (url);
-        }
-        unsafe internal url_struct_t to_url_struct( char* _base )
+            startIndex = this.startIndex,
+            length     = this.length,
+            value      = this.value,
+        };
+        unsafe internal url_struct_t to_url_struct( char* _base ) => new url_struct_t()
         {
-            var url = new url_struct_t()
-            {
-                startPtr = _base + startIndex,
-                length   = length,
-            };
-            return (url);
-        }
+            startPtr = _base + startIndex,
+            length   = length,
+        };
 
-        unsafe static internal url_t to_url( url_struct_t url, char* _base )
+        unsafe static internal url_t to_url( url_struct_t url, char* _base ) => new url_t()
         {
-            var _url = new url_t()
-            {
-                startIndex = (int) (url.startPtr - _base),
-                length     = url.length,
-            };
-            return (_url);
-        }
+            startIndex = (int) (url.startPtr - _base),
+            length     = url.length,
+        };
     }
 
     /// <summary>
@@ -68,7 +56,7 @@ namespace lingvo.urls
     /// <summary>
     /// 
     /// </summary>
-    public class UrlDetectorModel
+    public sealed class UrlDetectorModel
     {
         public UrlDetectorModel( string urlDetectorResourcesXmlFilename )
         {
@@ -80,13 +68,8 @@ namespace lingvo.urls
                                     select xe.Value;
 
             Initialize( firstLevelDomains, uriSchemes );
-
-            xdoc = null;
         }
-        public UrlDetectorModel( IEnumerable< string > firstLevelDomains, IEnumerable< string > uriSchemes )
-        {
-            Initialize( firstLevelDomains, uriSchemes );
-        }
+        public UrlDetectorModel( IEnumerable< string > firstLevelDomains, IEnumerable< string > uriSchemes ) => Initialize( firstLevelDomains, uriSchemes );
 
         private void Initialize( IEnumerable< string > firstLevelDomains, IEnumerable< string > uriSchemes )
         {
@@ -97,51 +80,31 @@ namespace lingvo.urls
             URIschemesMaxLength       = URIschemes.GetItemMaxLength_4Urls();
         }
 
-        public HashSet< string > FirstLevelDomains
-        { 
-            get; 
-            private set; 
-        }
-        public int               FirstLevelDomainsMaxLength
-        {
-            get;
-            private set;
-        }
-        public HashSet< string > URIschemes
-        { 
-            get; 
-            private set; 
-        }
-        public int               URIschemesMaxLength
-        {
-            get;
-            private set;
-        }
+        public HashSet< string > FirstLevelDomains          { get; private set; }
+        public int               FirstLevelDomainsMaxLength { get; private set; }
+        public HashSet< string > URIschemes                 { get; private set; }
+        public int               URIschemesMaxLength        { get; private set; }
     }
 
     /// <summary>
     /// 
     /// </summary>
-    public class UrlDetectorConfig
+    public sealed class UrlDetectorConfig
     {
-        public UrlDetectorConfig()
+        public UrlDetectorConfig() { }
+        public UrlDetectorConfig( string urlDetectorResourcesXmlFilename, UrlDetector.UrlExtractModeEnum urlExtractMode = UrlDetector.UrlExtractModeEnum.Position )
         {
+            Model          = new UrlDetectorModel( urlDetectorResourcesXmlFilename );
+            UrlExtractMode = urlExtractMode;
         }
-        public UrlDetectorConfig( string urlDetectorResourcesXmlFilename )
+        public UrlDetectorConfig( UrlDetectorModel model, UrlDetector.UrlExtractModeEnum urlExtractMode = UrlDetector.UrlExtractModeEnum.Position )
         {
-            Model = new UrlDetectorModel( urlDetectorResourcesXmlFilename );
+            Model          = model;
+            UrlExtractMode = urlExtractMode;
         }
 
-        public UrlDetectorModel Model
-        {
-            get;
-            set;
-        }
-        public UrlDetector.UrlExtractModeEnum UrlExtractMode
-        {
-            get;
-            set;
-        }
+        public UrlDetectorModel Model { get; set; }
+        public UrlDetector.UrlExtractModeEnum UrlExtractMode { get; set; }
     }
 
     /// <summary>
@@ -155,8 +118,18 @@ namespace lingvo.urls
         public enum UrlExtractModeEnum
         {
             ValueAndPosition,
-            Position,           
+            Position,
         }
+
+        #region [.cctor().]
+        private static readonly CharType* _CTM;
+        private static readonly char*     _UIM;
+        static UrlDetector()
+        {
+            _CTM = xlat_Unsafe.Inst._CHARTYPE_MAP;
+            _UIM = xlat_Unsafe.Inst._UPPER_INVARIANT_MAP;
+        }
+        #endregion
 
         #region [.private field's.]
         private const int DEFAULT_LIST_CAPACITY                              = 100;
@@ -175,9 +148,7 @@ namespace lingvo.urls
         private readonly char[]               _URIschemesBuffer;       //buffer for URI-schemes (left) part of url
         private readonly GCHandle             _URIschemesBufferGCHandle;
         private char*                         _UriSchBufferPtrBase;
-        private readonly url_t                _Url;
-        private readonly CharType*            _CTM;  //xlat.CHARTYPE_MAP
-        private readonly char*                _UIM;  //xlat.UPPER_INVARIANT_MAP        
+        private readonly url_t                _Url;     
         private char*                         _BASE; //start pointer into text
         private char*                         _Ptr;  //current pointer into text
         #endregion
@@ -198,9 +169,6 @@ namespace lingvo.urls
             _Url                        = new url_t();
             _Urlstructs                 = new List< url_struct_t >( DEFAULT_LIST_CAPACITY );
 			
-            _CTM = xlat_Unsafe.Inst._CHARTYPE_MAP;
-            _UIM = xlat_Unsafe.Inst._UPPER_INVARIANT_MAP;
-
             //-1-
             _FirstLevelDomainBuffer         = new char[ _FirstLevelDomainsMaxLength + 1 ];
             _FirstLevelDomainBufferGCHandle = GCHandle.Alloc( _FirstLevelDomainBuffer, GCHandleType.Pinned );
@@ -212,14 +180,10 @@ namespace lingvo.urls
             _UriSchBufferPtrBase      = (char*) _URIschemesBufferGCHandle.AddrOfPinnedObject().ToPointer();
         }
 
-        ~UrlDetector()
-        {
-            DisposeNativeResources();
-        }
+        ~UrlDetector() => DisposeNativeResources();
         public void Dispose()
         {
             DisposeNativeResources();
-
             GC.SuppressFinalize( this );
         }
         private void DisposeNativeResources()
@@ -809,18 +773,9 @@ namespace lingvo.urls
     internal static class UrlDetectorExt
     {
         public static HashSet< string > ToHashset_4Urls( this IEnumerable< string > seq )
-        {
-            var hs = new HashSet< string >( seq.Select( d => (d != null) ? d.Trim().ToUpperInvariant() : null ).Where( d => !string.IsNullOrEmpty( d ) ) );
-            return (hs);
-        }
+            => new HashSet< string >( seq.Select( d => (d != null) ? d.Trim().ToUpperInvariant() : null ).Where( d => !string.IsNullOrEmpty( d ) ) );
         public static HashSet< string > ToHashsetWithReverseValues_4Urls( this IEnumerable< string > seq )
-        {
-            var hs = new HashSet< string >( seq.Select( d => (d != null) ? new string( d.Trim().Reverse().ToArray() ).ToUpperInvariant() : null ).Where( d => !string.IsNullOrEmpty( d ) ) );
-            return (hs);
-        }
-        public static int GetItemMaxLength_4Urls( this HashSet< string > hs )
-        {
-            return ((hs.Count != 0) ? hs.Max( d => d.Length ) : 0);
-        }
+            => new HashSet< string >( seq.Select( d => (d != null) ? new string( d.Trim().Reverse().ToArray() ).ToUpperInvariant() : null ).Where( d => !string.IsNullOrEmpty( d ) ) );
+        public static int GetItemMaxLength_4Urls( this HashSet< string > hs ) => ((hs.Count != 0) ? hs.Max( d => d.Length ) : 0);
     }
 }

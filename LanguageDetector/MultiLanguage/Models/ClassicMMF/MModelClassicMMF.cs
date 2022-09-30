@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.IO.MemoryMappedFiles;
-using System.Runtime.InteropServices;
-using System.Text;
+
 using lingvo.core;
 
 namespace lingvo.ld.MultiLanguage
@@ -19,14 +15,11 @@ namespace lingvo.ld.MultiLanguage
         /// </summary>
         private struct Pair
         {
-            public string Text;
-            public float Weight;
+            public string   Text;
+            public float    Weight;
             public Language Language;
 #if DEBUG
-                public override string ToString()
-                {
-                    return (Text + ", " + Weight + ", " + Language);
-                }  
+            public override string ToString() => $"{Text}, {Weight}, {Language}";
 #endif
         }
 
@@ -40,10 +33,7 @@ namespace lingvo.ld.MultiLanguage
         /// </summary>
         unsafe private sealed class LanguageModelFileReaderMMF  : LanguageConfig
         {
-            private LanguageModelFileReaderMMF( LanguageConfig languageConfig ) : base( languageConfig.Language, languageConfig.ModelFilename )
-            {
-
-            }
+            private LanguageModelFileReaderMMF( LanguageConfig languageConfig ) : base( languageConfig.Language, languageConfig.ModelFilename ) { }
 
             private void LoadModelFilenameContent( LoadModelFilenameContentCallback callbackAction )
             {
@@ -198,12 +188,8 @@ namespace lingvo.ld.MultiLanguage
             }
         }
 
-
-        #region [.private field's.]
-        private Dictionary< string, BucketValue > _Dictionary;
-        #endregion
-
         #region [.ctor().]
+        private Dictionary< string, BucketValue > _Dictionary;
         public MModelClassicMMF( MModelConfig config )
         {
             //var sw = Stopwatch.StartNew();
@@ -237,9 +223,7 @@ namespace lingvo.ld.MultiLanguage
         }
         private void ConsecutivelyLoadMMFCallback( ref Pair pair )
         {
-            BucketValue bucketVal;
-
-            if ( _Dictionary.TryGetValue( pair.Text, out bucketVal ) )
+            if ( _Dictionary.TryGetValue( pair.Text, out var bucketVal ) )
             {
                 var bucketRef = new BucketRef() { Language = pair.Language, Weight = pair.Weight };
                 if ( bucketVal.NextBucket == null )

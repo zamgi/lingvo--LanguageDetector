@@ -13,22 +13,15 @@ namespace lingvo.ld.MultiLanguage
     internal struct BucketValue
 #endif
     {
-        public BucketValue( Language language, float weight ) : this()
+        public BucketValue( Language language, float weight )
         {
-            Language = language;
-            Weight   = weight;
+            Language   = language;
+            Weight     = weight;
+            NextBucket = default;
         }
 
-        public Language Language
-        {
-            get;
-            private set;
-        }
-        public float    Weight
-        {
-            get;
-            private set;
-        }
+        public Language Language { get; }
+        public float    Weight   { get; }
 
         public BucketRef NextBucket;
 
@@ -51,10 +44,7 @@ namespace lingvo.ld.MultiLanguage
             }            
         }
 
-        public override string ToString()
-        {
-            return (Language + " : " + Weight);
-        }
+        public override string ToString() => $"{Language}:{Weight}";
     }
 
     /// <summary>
@@ -66,27 +56,12 @@ namespace lingvo.ld.MultiLanguage
     internal sealed class BucketRef
 #endif
     {
-        public Language Language
-        {
-            get;
-            set;
-        }
-        public float    Weight
-        {
-            get;
-            set;
-        }
+        public Language Language { get; set; }
+        public float    Weight   { get; set; }
 
-        public BucketRef NextBucket
-        {
-            get;
-            set;
-        }
+        public BucketRef NextBucket { get; set; }
 
-        public override string ToString()
-        {
-            return (Language + " : " + Weight);
-        }
+        public override string ToString() => $"{Language}:{Weight}";
     }
 
     /// <summary>
@@ -94,15 +69,15 @@ namespace lingvo.ld.MultiLanguage
     /// </summary>
     internal struct WeighByLanguageEnumerator : IEnumerator< WeighByLanguage >, IEnumerable< WeighByLanguage >
     {
-        private BucketRef _Next;
+        private BucketRef       _Next;
         private WeighByLanguage _Current;
-        private bool _IsStarted;
+        private bool            _IsStarted;
 
         public WeighByLanguageEnumerator( in BucketValue bucketVal )
         {                
             _IsStarted = false;                
-            _Next = bucketVal.NextBucket;
-            _Current = new WeighByLanguage() { Language = bucketVal.Language, Weight = bucketVal.Weight };
+            _Next      = bucketVal.NextBucket;
+            _Current   = new WeighByLanguage() { Language = bucketVal.Language, Weight = bucketVal.Weight };
         }
 
         public WeighByLanguage Current => _Current;
@@ -117,7 +92,7 @@ namespace lingvo.ld.MultiLanguage
             if ( _Next != null )
             {
                 _Current = new WeighByLanguage() { Language = _Next.Language, Weight = _Next.Weight };
-                _Next = _Next.NextBucket;
+                _Next    = _Next.NextBucket;
                 return (true);
             }
 

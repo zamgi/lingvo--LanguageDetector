@@ -18,25 +18,16 @@ namespace lingvo.ld
 
         public LanguageConfig( Language language, string modelFilename )
         {
-            modelFilename.ThrowIfNullOrWhiteSpace("modelFilename");
+            modelFilename.ThrowIfNullOrWhiteSpace( nameof(modelFilename) );
 
             Language      = language;
             ModelFilename = modelFilename;
 
-            if ( !File.Exists( ModelFilename ) )
-                throw (new FileNotFoundException("File not found: '" + ModelFilename + '\'', ModelFilename));
+            if ( !File.Exists( ModelFilename ) ) throw (new FileNotFoundException( $"File not found: '{ModelFilename}'", ModelFilename ));
         }
 
-        public Language Language
-        {
-            get;
-            private set;
-        }
-        public string   ModelFilename
-        {
-            get;
-            private set;
-        }
+        public Language Language { get; }
+        public string ModelFilename { get; }
 
         public IEnumerable< KeyValuePair< string, float > > GetModelFilenameContent()
         {
@@ -74,10 +65,7 @@ namespace lingvo.ld
             }
         }
 #if DEBUG
-        public override string ToString()
-        {
-            return (Language + ", '" + ModelFilename + '\'');
-        } 
+        public override string ToString() => $"{Language}, '{ModelFilename}'";
 #endif
     }
 }

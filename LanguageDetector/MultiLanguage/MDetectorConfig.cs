@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-using lingvo.core;
-using lingvo.urls;
+﻿using lingvo.urls;
 
 namespace lingvo.ld.MultiLanguage
 {
@@ -41,50 +37,26 @@ namespace lingvo.ld.MultiLanguage
             ThresholdAbsoluteWeightLanguage    = THRESHOLD_ABSOLUTE_WEIGHT_LANGUAGE;
         }
 
-        public UrlDetectorModel UrlDetectorModel
-        {
-            get;
-            set;
-        }
+        public UrlDetectorModel UrlDetectorModel { get; set; }
         /// <summary>
         /// порог 10% по языку. меньше этого порога - отбрасывать в unk.
         /// </summary>
-        public int              ThresholdPercent
-        {
-            get;
-            set;
-        }
+        public int              ThresholdPercent { get; set; }
         /// <summary>
         /// если 3 и более языков, начиная с первого отличаются не более чем на 8% между собой, то это либо неизвестный язык, либо сильно смешенный – отбрасывать в unk. 
         /// </summary>
-        public int              ThresholdPercentBetween3Language
-        {
-            get;
-            set;
-        }
+        public int              ThresholdPercentBetween3Language { get; set; }
         /// <summary>
         /// если в тексте более чем из 9 слов определилось не более 10% слов - отбрасывать его в unk.
         /// </summary>
-        public int              ThresholdDetectingWordCount
-        {
-            get;
-            set;
-        }
+        public int              ThresholdDetectingWordCount { get; set; }
         /// <summary>
         /// если в тексте более чем из 9 слов определилось не более 10% слов - отбрасывать его в unk.
         /// </summary>
-        public int              ThresholdPercentDetectingWordCount
-        {
-            get;
-            set;
-        }
+        public int              ThresholdPercentDetectingWordCount { get; set; }
         /// <summary>
         /// порог на абсолютный вес для каждого языка
         /// </summary>
-        public float            ThresholdAbsoluteWeightLanguage
-        {
-            get;
-            set;
-        }
+        public float            ThresholdAbsoluteWeightLanguage { get; set; }
     }
 }

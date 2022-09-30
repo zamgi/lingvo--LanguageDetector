@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using M = System.Runtime.CompilerServices.MethodImplAttribute;
+using O = System.Runtime.CompilerServices.MethodImplOptions;
+
 namespace lingvo.core
 {
     /// <summary>
@@ -45,18 +48,12 @@ namespace lingvo.core
             {
                 if ( string.IsNullOrWhiteSpace( c ) )
                 {
-                    throw (new ArgumentNullException( paramName + " => some collection element is NULL-or-WhiteSpace" ));
+                    throw (new ArgumentNullException( $"'{paramName}' => some collection element is NULL-or-WhiteSpace" ));
                 }
             }
         }
 
-        public static bool IsNullOrWhiteSpace( this string text )
-        {
-            return (string.IsNullOrWhiteSpace( text ));
-        }
-        public static bool IsNullOrEmpty( this string text )
-        {
-            return (string.IsNullOrEmpty( text ));
-        }
+        [M(O.AggressiveInlining)] public static bool IsNullOrWhiteSpace( this string text ) => string.IsNullOrWhiteSpace( text );
+        [M(O.AggressiveInlining)] public static bool IsNullOrEmpty( this string text ) => string.IsNullOrEmpty( text );
     }
 }

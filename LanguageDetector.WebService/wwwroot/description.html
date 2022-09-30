@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Language detection</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="description" content="Language detection; natural language processing; computational linguistics" />
+    <meta name="keywords"    content="Language detection; natural language processing; computational linguistics" />
+    <link rel="stylesheet" href="css/style.css" type="text/css" />   
+</head>
+<body class="default">
+    <div id="wrapper">
+        <div id="superMainWrapper">
+            <div id="mainWrapper" class="clearfix">
+                <div id="main" class="clearfix">
+                    <div id="mainPageContent">
+                        <h2 id="periodsHeader" class="h-head">
+                            <a href="index.html" class="xz-link">Language detection</a>
+                            <span class="description-header">Description</span>
+                        </h2>
+                        <div style="padding: 20px">
+                            <p>
+                                Automatic identification of language - an important first step of automatic text processing process.
+                                Wrong definition of language posts will lead to its incorrect handling.
+                                If the problem seeming simplicity of its practical implementation is not so obvious.
+                                This is particularly evident in the processing of short messages, such as the tweets.
+                                <br />
+                                Firstly, there is a set of related languages ​​that use alphabets close and similar language, such as Russian, Byelorussian, Ukrainian, Bulgarian, Serbian, and so forth.
+                                In such cases, solutions based on simple statistics words, letters or combinations thereof, do not work well.
+                                For example, a simple sentence, "Mom soap frame" on the Bulgarian will be <i> «shirt izmiva frame» </i>.
+                                Two words of this sentence on the Bulgarian and Russian are, though in a somewhat different meaning.
+                                The system can easily recognize this text as a Russian.
+                                <br />
+                                Secondly, the same spelling of words may occur in unrelated languages.
+                                And if these words frequency, the percentage may be quite large.
+                                For example, English is sufficient frequency preposition <i> «on» </i> in the Finnish language is a verb olla (be) in the third person singular, and, accordingly, the word at the same frequency.
+                                Therefore, the proposal <i>"sauna on sijoitettu metsään"</i> system can recognize as english.
+                                Conversely, the proposal <i>"sauna on wheels"</i>, as the Finnish.
+                            </p><p>
+                                The presented system is devoid of these shortcomings, and works quite well with the related languages.
+                                <br />
+                                The demo version can be identified as languages with Cyrillic alphabet and using the Latin alphabet.
+                                <br />
+                                The output shows the probability distribution of messages by language, normalized to 100%.
+                            </p><p>
+                                Accuracy depends on the definition of language group and the proximity of recognizable languages.
+                                On the accuracy of an average of about 96-97%.
+                                <br />
+                                The speed of the unit - about 10 MB/sec text in double-byte character set.
+                            </p>
+                            <hr />
+                            <p>
+                                Автоматическая идентификация языка – первый и важный этап процесса автоматической обработки текста.
+                                Неправильное определение языка сообщения приведет к неверной его обработке.
+                                При кажущейся простоте задачи ее практическая реализация не так очевидна.
+                                Особенно это проявляется на обработке коротких сообщений, например, таких как твиты.
+                                <br />
+                                Во-первых, существует множество родственных языков, использующих близкие алфавиты и похожую лексику, как, например, русский, белорусский, украинский, болгарский, сербский и пр.
+                                В таких случаях решения, основанные на простой статистике слов, букв или их сочетаний, работают плохо.
+                                Например, простое предложение «мама мыла раму» на болгарском будет <i>«майка измива рамка»</i>.
+                                Два слова этого предложения на болгарском имеются и в русском, правда в несколько другом значении.
+                                Система легко может распознать это текст как русский.
+                                <br />
+                                Во-вторых, одинаковое написание слов может встречаться и в неродственных языках.
+                                А если эти слова частотные, то их удельный вес может быть достаточно большой.
+                                Например, английский достаточно частотный предлог <i>«on»</i> в финском языке является глаголом olla (быть) в третьем лице единственного числа, и соответственно, это слово то же частотно.
+                                Поэтому предложение <i>"sauna on sijoitettu metsään"</i> система может распознать как английское.
+                                И наоборот, предложение <i>"sauna on wheels"</i>, как финское.
+                            </p><p>
+                                Представленная нами система лишена этих недостатков и достаточно хорошо работает с родственными языками.
+                                <br />
+                                В демо версии можно идентифицировать как языки с кириллическим алфавитом , так и использующие латиницу.
+                                <br />
+                                Результат работы показывает вероятностное распределение сообщения по языкам, нормированное на 100%.
+                            </p><p>
+                                Точность определения зависит от языковой группы и близости распознаваемых языков.
+                                На данный точность составляет в среднем около 96-97%.
+                                <br />
+                                Скорость работы модуля – около 10 МБайт/сек текста в двухбайтной кодировке.
+                            </p>
+                            <hr />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="footer" class="clearfix">
+                <div id="footerMenu">
+                    <span>&copy; 2013-2014</span>
+                    <span class="footer-menu-separator">|</span><span><a href="description.html">About</a></span>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

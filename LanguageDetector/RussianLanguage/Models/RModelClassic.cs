@@ -11,17 +11,15 @@ namespace lingvo.ld.RussianLanguage
     public sealed class RModelClassic : IRModel
     {
         private HashSet< string > _Hashset;
-
         public RModelClassic( LanguageConfig config )
         {
-            config.ThrowIfNull( "config" );
-            if ( config.Language != Language.RU )
-                throw (new ArgumentException( "config.Language" ));
+            config.ThrowIfNull( nameof(config) );
+            if ( config.Language != Language.RU ) throw (new ArgumentException( nameof(config.Language) ));
 
             _Hashset = new HashSet< string >();
-            foreach ( var pair in config.GetModelFilenameContent() )
+            foreach ( var p in config.GetModelFilenameContent() )
             {
-                var text = pair.Key.ToUpperInvariant();
+                var text = p.Key.ToUpperInvariant();
 
                 _Hashset.Add( text );
             }
@@ -35,10 +33,7 @@ namespace lingvo.ld.RussianLanguage
             }
         }
 
-        public bool Contains( string ngram )
-        {
-            return (_Hashset.Contains( ngram ));
-        }
+        public bool Contains( string ngram ) => _Hashset.Contains( ngram );
         public IEnumerable< string > GetAllRecords()
         {
             foreach ( var ngram in _Hashset )
@@ -46,9 +41,6 @@ namespace lingvo.ld.RussianLanguage
                 yield return (ngram);
             }
         }
-        public int RecordCount
-        {
-            get { return (_Hashset.Count); }
-        }
+        public int RecordCount => _Hashset.Count;
     }
 }

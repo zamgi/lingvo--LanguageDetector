@@ -96,7 +96,6 @@ namespace lingvo.ld.MultiLanguage
                     };                    
                     return (true);
                 }
-
                 return (false);
             }
 
@@ -144,7 +143,11 @@ namespace lingvo.ld.MultiLanguage
             const int BUFFER_SIZE = 0x2000;
 
             using ( var fs = new FileStream( modelFilename, FileMode.Open, FileAccess.Read, FileShare.Read, BUFFER_SIZE, FileOptions.SequentialScan ) )
+#if NETSTANDARD || NETCOREAPP
+            using ( var mmf = MemoryMappedFile.CreateFromFile( fs, null, 0L, MemoryMappedFileAccess.Read, HandleInheritability.None, true ) )
+#else
             using ( var mmf = MemoryMappedFile.CreateFromFile( fs, null, 0L, MemoryMappedFileAccess.Read, new MemoryMappedFileSecurity(), HandleInheritability.None, true ) )
+#endif            
             using ( var accessor = mmf.CreateViewAccessor( 0L, 0L, MemoryMappedFileAccess.Read ) )
             {
                 byte* buffer = null;

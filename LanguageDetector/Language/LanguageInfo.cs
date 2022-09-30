@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 
 namespace lingvo.ld
@@ -22,13 +21,13 @@ namespace lingvo.ld
             Percent  = percent;
         }
 
-        public Language Language { get; private set; }
-        public float    Weight   { get; private set; }
-        public int      Percent  { get; private set; }
+        public Language Language { get; }
+        public float    Weight   { get; }
+        public int      Percent  { get; }
 
 #if DEBUG
         private static NumberFormatInfo NFI = new NumberFormatInfo() { NumberDecimalSeparator = "." };
-        public override string ToString() => (Language.ToString() + ':' + Weight.ToString( NFI ) + " (" + Percent + "%)");
+        public override string ToString() => $"{Language}:{Weight.ToString( NFI )} ({Percent}%)";
 #endif
     }
 
@@ -37,7 +36,7 @@ namespace lingvo.ld
     /// </summary>
     internal sealed class LanguageInfoComparer : IComparer< LanguageInfo >
     {
-        public static readonly LanguageInfoComparer Instance = new LanguageInfoComparer();
+        public static LanguageInfoComparer Inst { get; } = new LanguageInfoComparer();
         private LanguageInfoComparer() { }
 
         public int Compare( LanguageInfo x, LanguageInfo y )

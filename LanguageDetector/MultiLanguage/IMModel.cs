@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using lingvo.core;
 
 namespace lingvo.ld.MultiLanguage
 {
@@ -13,10 +12,7 @@ namespace lingvo.ld.MultiLanguage
         public float    Weight;
         public Language Language;
 #if DEBUG
-        public override string ToString()
-        {
-            return (Language.ToString() + ':' + Weight.ToString());
-        } 
+        public override string ToString() => $"{Language}:{Weight}";
 #endif
     }
 
@@ -28,10 +24,7 @@ namespace lingvo.ld.MultiLanguage
         public string Ngram;
         public IEnumerable< WeighByLanguage > WeighByLanguages;
 #if DEBUG
-        public override string ToString()
-        {
-            return (Ngram + " => {" + string.Join( ", ", WeighByLanguages.Select( t => t.ToString() ) ) + '}');
-        } 
+        public override string ToString() => $"'{Ngram}' => {{{string.Join( ", ", WeighByLanguages.Select( t => t.ToString() ) )}}}";
 #endif
     }
 
@@ -41,9 +34,7 @@ namespace lingvo.ld.MultiLanguage
     public interface IMModel : IDisposable
     {
         bool TryGetValue( string ngram, out IEnumerable< WeighByLanguage > weighByLanguages );
-
         IEnumerable< MModelRecord > GetAllRecords();
-
         int RecordCount { get; }
     }
 }

@@ -38,9 +38,9 @@ namespace lingvo.ld.MultiLanguage
         #region [.ctor().]
         public MDetector( MDetectorConfig config, IMModel model )
         {
-            config.ThrowIfNull("config");            
-            config.UrlDetectorModel.ThrowIfNull( "config.UrlDetectorModel" );
-            model.ThrowIfNull( "model" );
+            config.ThrowIfNull( nameof(config) );            
+            config.UrlDetectorModel.ThrowIfNull( nameof(config.UrlDetectorModel) );
+            model.ThrowIfNull( nameof(model) );
 
             _Model                             = model;
             ThresholdPercent                   = config.ThresholdPercent;
@@ -55,6 +55,7 @@ namespace lingvo.ld.MultiLanguage
             _NgramStringBuilder                = new StringBuilder( NGRAM_STRINGBUILDER_DEFAULT_LENGTH );
             _ProcessTermCallbackAction         = new Action< string >( ProcessTermCallback );
         }
+        public void Dispose() => _Tokenizer.Dispose();
         #endregion
 
         #region [.properties.]
@@ -66,56 +67,46 @@ namespace lingvo.ld.MultiLanguage
 
         public int   ThresholdPercent
         {
-            get { return (_ThresholdPercent); }
+            get => _ThresholdPercent;
             set
             {
-                if (value < 0 || 100 < value)
-                    throw (new ArgumentException("ThresholdPercent"));
-
+                if ( value < 0 || 100 < value ) throw (new ArgumentException( nameof(ThresholdPercent) ));
                 _ThresholdPercent = value;
             }
         }
         public int   ThresholdPercentBetween3Language
         {
-            get { return (_ThresholdPercentBetween3Language); }
+            get => _ThresholdPercentBetween3Language;
             set
             {
-                if (value < 0 || 100 < value)
-                    throw (new ArgumentException("ThresholdPercentBetween3Language"));
-
+                if ( value < 0 || 100 < value ) throw (new ArgumentException( nameof(ThresholdPercentBetween3Language) ));
                 _ThresholdPercentBetween3Language = value;
             }
         }
         public int   ThresholdDetectingWordCount
         {
-            get { return (_ThresholdDetectingWordCount); }
+            get => _ThresholdDetectingWordCount;
             set
             {
-                if ( value < 0 )
-                    throw (new ArgumentException( "ThresholdDetectingWordCount" ));
-
+                if ( value < 0 ) throw (new ArgumentException( nameof(ThresholdDetectingWordCount) ));
                 _ThresholdDetectingWordCount = value;
             }
         }
         public int   ThresholdPercentDetectingWordCount
         {
-            get { return (_ThresholdPercentDetectingWordCount); }
+            get => _ThresholdPercentDetectingWordCount;
             set
             {
-                if ( value < 0 || 100 < value )
-                    throw (new ArgumentException( "ThresholdPercentDetectingWordCount" ));
-
+                if ( value < 0 || 100 < value ) throw (new ArgumentException( nameof(ThresholdPercentDetectingWordCount) ));
                 _ThresholdPercentDetectingWordCount = value;
             }
         }
         public float ThresholdAbsoluteWeightLanguage
         {
-            get { return (_ThresholdAbsoluteWeightLanguage); }
+            get => _ThresholdAbsoluteWeightLanguage;
             set
             {
-                if ( value < 0.0 || 100.0 < value )
-                    throw (new ArgumentException( "ThresholdAbsoluteWeightLanguage" ));
-
+                if ( value < 0.0 || 100.0 < value ) throw (new ArgumentException( nameof(ThresholdAbsoluteWeightLanguage) ));
                 _ThresholdAbsoluteWeightLanguage = value;
             }
         }
@@ -198,7 +189,7 @@ namespace lingvo.ld.MultiLanguage
                     _LanguageInfos.Add( new LanguageInfo( language, weight, percent ) );
                 }
 
-                _LanguageInfos.Sort( LanguageInfoComparer.Instance );
+                _LanguageInfos.Sort( LanguageInfoComparer.Inst );
 
                 //Если 3 и более языков, начиная с первого отличаются не более чем на 8% между собой, то это либо неизвестный язык, либо сильно смешенный – отбрасывать в unk. 
                 if ( THREE_LANGUAGE <= _LanguageInfos.Count )
@@ -230,8 +221,7 @@ namespace lingvo.ld.MultiLanguage
         {
             //-1-grams-
             var termDetecting = 0;
-            IEnumerable< WeighByLanguage > weighByLanguages;
-            if ( _Model.TryGetValue( term, out weighByLanguages ) )
+            if ( _Model.TryGetValue( term, out var weighByLanguages ) )
 	        {
                 termDetecting = 1;
 

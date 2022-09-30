@@ -1,10 +1,11 @@
-﻿
+﻿using System;
+
 namespace lingvo.ld
 {
     /// <summary>
     /// 
     /// </summary>
-    public interface ILanguageDetector
+    public interface ILanguageDetector : IDisposable
     {
         LanguageInfo[] DetectLanguage( string text );
     }

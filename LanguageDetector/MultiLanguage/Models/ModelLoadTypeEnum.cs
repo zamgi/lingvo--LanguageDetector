@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace lingvo.ld.MultiLanguage
+﻿namespace lingvo.ld.MultiLanguage
 {
     /// <summary>
     /// 

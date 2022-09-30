@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
 using lingvo.core;
 using lingvo.tokenizing;
 
 namespace lingvo.ld.RussianLanguage
-{    
+{
     /// <summary>
     /// 
     /// </summary>
@@ -16,24 +15,25 @@ namespace lingvo.ld.RussianLanguage
         private const float NULL_WEIGHT = 0.0f;
         private static readonly LanguageInfo[] LANGUAGEINFO_EMPTY = new LanguageInfo[ 0 ];
 
-        private readonly IRModel        _Model;
+        private readonly IRModel       _Model;
         private readonly mld_tokenizer _Tokenizer;
-        private readonly StringBuilder      _Sb;
+        private readonly StringBuilder _Buf;
         #endregion
 
         #region [.ctor().]
         public RDetector( RDetectorConfig config, IRModel model )
         {
-            config.ThrowIfNull("config");
-            model.ThrowIfNull( "model" );
-            config.UrlDetectorModel.ThrowIfNull( "config.UrlDetectorModel" );
+            config.ThrowIfNull( nameof(config) );
+            model.ThrowIfNull( nameof(model) );
+            config.UrlDetectorModel.ThrowIfNull( nameof(config.UrlDetectorModel) );
 
             Threshold              = config.Threshold;
             CyrillicLettersPercent = config.CyrillicLettersPercent;
             _Model                 = model;
             _Tokenizer             = new mld_tokenizer( config.UrlDetectorModel );
-            _Sb                    = new StringBuilder( 50 );
+            _Buf                   = new StringBuilder( 50 );
         }
+        public void Dispose() => _Tokenizer.Dispose();
         #endregion
 
         #region [.properties.]
@@ -42,17 +42,15 @@ namespace lingvo.ld.RussianLanguage
 
         public float Threshold
         {
-            get { return (_Threshold); }
-            set { _Threshold = value; }
+            get => _Threshold;
+            set => _Threshold = value;
         }
         public int   CyrillicLettersPercent
         {
-            get { return (_CyrillicLettersPercent); }
+            get => _CyrillicLettersPercent;
             set 
             {
-                if (value < 0 || 100 < value)
-                    throw (new ArgumentException("CyrillicLettersPercent"));
-
+                if ( value < 0 || 100 < value ) throw (new ArgumentException( nameof(CyrillicLettersPercent) ));
                 _CyrillicLettersPercent = value;
             }
         }
@@ -65,9 +63,7 @@ namespace lingvo.ld.RussianLanguage
             if ( text.IsNullOrWhiteSpace() )
                 return (null);
 
-            var dummy  = default(int);
-            var weight = ProcessInternal( text, out dummy );
-
+            var weight = ProcessInternal( text, out var _ );
             if ( weight < _Threshold )
                 return (LANGUAGEINFO_EMPTY);
 
@@ -81,7 +77,6 @@ namespace lingvo.ld.RussianLanguage
                 return (null);
 
             var weight = ProcessInternal( text );
-
             if ( weight == NULL_WEIGHT || weight < _Threshold )
                 return (LANGUAGEINFO_EMPTY);
 
@@ -98,9 +93,7 @@ namespace lingvo.ld.RussianLanguage
             if ( text.IsNullOrWhiteSpace() )
                 return (null);
 
-            var dummy = default(int);
-            var weight = ProcessInternal( text, out dummy );
-
+            var weight = ProcessInternal( text, out var _ );
             if ( weight == NULL_WEIGHT || weight < _Threshold )
                 return (null);
 
@@ -115,7 +108,6 @@ namespace lingvo.ld.RussianLanguage
             }
 
             var weight = ProcessInternal( text, out cyrillicLettersPercent );
-
             if ( weight == NULL_WEIGHT || weight < _Threshold )
                 return (null);
 
@@ -128,7 +120,6 @@ namespace lingvo.ld.RussianLanguage
                 return (null);
 
             var weight = ProcessInternal( text );
-
             if ( weight == NULL_WEIGHT || weight < _Threshold )
                 return (null);
 
@@ -174,7 +165,7 @@ namespace lingvo.ld.RussianLanguage
                 {
                     termCountInHashset++;
                 }
-                var ngram_2 = _Sb.Clear().Append( termPrevious ).Append( ' ' ).Append( term ).ToString();
+                var ngram_2 = _Buf.Clear().Append( termPrevious ).Append( ' ' ).Append( term ).ToString();
                 if ( _Model.Contains( ngram_2 ) )
                 {
                     termCountInHashset++;

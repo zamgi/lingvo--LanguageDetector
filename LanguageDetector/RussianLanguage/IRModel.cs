@@ -9,9 +9,7 @@ namespace lingvo.ld.RussianLanguage
     public interface IRModel : IDisposable
     {
         bool Contains( string ngram );
-
         IEnumerable< string > GetAllRecords();
-
         int RecordCount { get; }
     }
 }
