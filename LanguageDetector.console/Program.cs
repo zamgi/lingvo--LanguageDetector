@@ -1,137 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime;
-
-using lingvo.urls;
-using lingvo.ld.MultiLanguage;
+using System.Text;
 
 namespace lingvo.ld.TestApp
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    internal sealed class Config
-    {
-        private Config()
-        {
-            var NFI = new NumberFormatInfo() { NumberDecimalSeparator = "." };
-            var NS  = NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent | NumberStyles.AllowLeadingSign;
-
-            URL_DETECTOR_RESOURCES_XML_FILENAME       = ConfigurationManager.AppSettings[ "URL_DETECTOR_RESOURCES_XML_FILENAME" ];
-            LANGUAGE_MODELS_FOLDER                    = ConfigurationManager.AppSettings[ "LANGUAGE_MODELS_FOLDER" ];
-            ML_THRESHOLD_PERCENT                      = int.Parse( ConfigurationManager.AppSettings[ "ML_THRESHOLD_PERCENT" ] );
-            ML_THRESHOLD_PERCENT_BETWEEN_3_LANGUAGE   = int.Parse( ConfigurationManager.AppSettings[ "ML_THRESHOLD_PERCENT_BETWEEN_3_LANGUAGE" ] );
-            ML_THRESHOLD_DETECTING_WORD_COUNT         = int.Parse( ConfigurationManager.AppSettings[ "ML_THRESHOLD_DETECTING_WORD_COUNT" ] );
-            ML_THRESHOLD_PERCENT_DETECTING_WORD_COUNT = int.Parse( ConfigurationManager.AppSettings[ "ML_THRESHOLD_PERCENT_DETECTING_WORD_COUNT" ] );
-            ML_THRESHOLD_ABSOLUTE_WEIGHT_LANGUAGE     = float.Parse( ConfigurationManager.AppSettings[ "ML_THRESHOLD_ABSOLUTE_WEIGHT_LANGUAGE" ], NS, NFI );
-            ML_MODEL_DICTIONARY_CAPACITY              = int.Parse( ConfigurationManager.AppSettings[ "ML_MODEL_DICTIONARY_CAPACITY" ] );
-            RU_CYRILLIC_LETTERS_PERCENT               = int.Parse( ConfigurationManager.AppSettings[ "RU_CYRILLIC_LETTERS_PERCENT" ] );
-            RU_THRESHOLD                              = float.Parse( ConfigurationManager.AppSettings[ "RU_THRESHOLD" ], NS, NFI );
-
-            _BINARY_MODEL_FOLDER = ConfigurationManager.AppSettings[ "BINARY_MODEL_FOLDER" ] ?? string.Empty;
-            var bmfns = ConfigurationManager.AppSettings[ "BINARY_MODEL_FILE_NAMES" ] ?? string.Empty;
-            _BINARY_MODEL_FILE_NAMES = (from fn in bmfns.Split( new[] { ';' }, StringSplitOptions.RemoveEmptyEntries )
-                                        let fileName = fn.Trim()
-                                        where ( !string.IsNullOrEmpty( fileName ) )
-                                        select Path.Combine( _BINARY_MODEL_FOLDER, fileName )
-                                       ).ToArray();
-        }
-
-        private static Config _Inst;
-        public static Config Inst
-        {
-            get
-            {
-                if ( _Inst == null )
-                {
-                    lock ( typeof(Config) )
-                    {
-                        if ( _Inst == null )
-                        {
-                            _Inst = new Config();
-                        }
-                    }
-                }
-                return (_Inst);
-            }
-        }
-
-        public readonly string URL_DETECTOR_RESOURCES_XML_FILENAME;
-        public readonly string LANGUAGE_MODELS_FOLDER;
-        public readonly int    ML_THRESHOLD_PERCENT;
-        public readonly int    ML_THRESHOLD_PERCENT_BETWEEN_3_LANGUAGE;
-        public readonly int    ML_THRESHOLD_DETECTING_WORD_COUNT;
-        public readonly int    ML_THRESHOLD_PERCENT_DETECTING_WORD_COUNT;
-        public readonly float  ML_THRESHOLD_ABSOLUTE_WEIGHT_LANGUAGE;
-        public readonly int    ML_MODEL_DICTIONARY_CAPACITY;
-        public readonly int    RU_CYRILLIC_LETTERS_PERCENT;
-        public readonly float  RU_THRESHOLD;
-        private string   _BINARY_MODEL_FOLDER;
-        private string[] _BINARY_MODEL_FILE_NAMES;
-
-        private IEnumerable< LanguageConfig > GetModelLanguageConfigs()
-        {
-            foreach ( var language in Languages.All )
-            {
-                var key = (language == Language.RU) ? "RU-ML" : language.ToString();
-                var modelFilename = ConfigurationManager.AppSettings[ key ];
-
-                if ( !string.IsNullOrWhiteSpace( modelFilename ) )
-                {
-                    modelFilename = Path.Combine( LANGUAGE_MODELS_FOLDER, modelFilename );
-
-                    yield return (new LanguageConfig( language, modelFilename ));
-                }
-            }
-        }
-        public MModelConfig GetMModelConfig()
-        {
-            var modelConfig = new MModelConfig() { ModelDictionaryCapacity = this.ML_MODEL_DICTIONARY_CAPACITY };
-            foreach ( var languageConfig in this.GetModelLanguageConfigs() )
-            {
-                modelConfig.AddLanguageConfig( languageConfig );
-            }
-            return (modelConfig);
-        }
-
-        public MModelBinaryNativeConfig GetMModelBinaryNativeConfig() => new MModelBinaryNativeConfig( _BINARY_MODEL_FILE_NAMES ) { ModelDictionaryCapacity = ML_MODEL_DICTIONARY_CAPACITY };
-
-        public MDetectorConfig GetMDetectorConfig() => new MDetectorConfig()
-        {
-            UrlDetectorModel                   = new UrlDetectorModel( URL_DETECTOR_RESOURCES_XML_FILENAME ),
-            ThresholdPercent                   = ML_THRESHOLD_PERCENT,
-            ThresholdPercentBetween3Language   = ML_THRESHOLD_PERCENT_BETWEEN_3_LANGUAGE,
-            ThresholdDetectingWordCount        = ML_THRESHOLD_DETECTING_WORD_COUNT,
-            ThresholdPercentDetectingWordCount = ML_THRESHOLD_PERCENT_DETECTING_WORD_COUNT,
-            ThresholdAbsoluteWeightLanguage    = ML_THRESHOLD_ABSOLUTE_WEIGHT_LANGUAGE,
-        };
-
-        /*public ManyLanguageDetectorModel GetManyLanguageDetectorModel( ManyLanguageDetectorModelConfig config ) => new ManyLanguageDetectorModel( config );
-        public ManyLanguageDetectorModelConfig GetManyLanguageDetectorModelConfig()
-        {
-            var config = new ManyLanguageDetectorModelConfig() { ModelDictionaryCapacity = ML_MODEL_DICTIONARY_CAPACITY };
-            foreach ( var lang in Languages.All )
-            {
-                var key = (lang == Language.RU) ? "RU-ML" : lang.ToString();
-                var modelFilename = ConfigurationManager.AppSettings[ key ];
-
-                if ( !string.IsNullOrWhiteSpace( modelFilename ) )
-                {
-                    modelFilename = Path.Combine( LANGUAGE_MODELS_FOLDER, modelFilename );
-
-                    var lconfig = new LanguageConfigAdv( lang, modelFilename );
-                    config.AddLanguageConfig( lconfig );
-                }
-            }
-            return (config);
-        }*/
-    }
-
     /// <summary>
     /// 
     /// </summary>
@@ -141,6 +17,8 @@ namespace lingvo.ld.TestApp
         {
             try
             {
+                Encoding.RegisterProvider( CodePagesEncodingProvider.Instance );
+
                 #region [.GC.]
                 GCSettings.LatencyMode = GCLatencyMode.LowLatency;
                 if ( GCSettings.LatencyMode != GCLatencyMode.LowLatency )
@@ -149,7 +27,8 @@ namespace lingvo.ld.TestApp
                 } 
                 #endregion
 
-                Test__MModelBinaryNative();
+                //Test__MModelBinaryNative();
+                Run_4_Files( @"E:\" );
 
                 //Test__MModelClassic();                
             }
@@ -166,53 +45,95 @@ namespace lingvo.ld.TestApp
 
         private static void Test__MModelBinaryNative()
         {
+            #region comm.
             //using ( var m = new MModelDictionaryNativeMMF( Config.Inst.GetMModelConfig() ) )
             //using ( var m = new MModelNativeTextMMF( Config.Inst.GetMModelConfig(), ModelLoadTypeEnum.Consecutively ) ) 
             //{
             //    Console.WriteLine( m.TryGetValue( "XZ", out var q ) );
             //}
+            #endregion
 
-            var sw = Stopwatch.StartNew();
-            using ( var model = new MModelBinaryNative( Config.Inst.GetMModelBinaryNativeConfig() ) )
-            {
-                var count = model.RecordCount;
-                sw.Stop(); Console.WriteLine( "elapsed: " + sw.Elapsed + ", count: " + count );
+            using var env = MLanguageDetectorEnvironment_BinaryNative.Create();
+            var detector = env.CreateMDetector();
 
-                GCCollect();
-
-                var detector = new MDetector( Config.Inst.GetMDetectorConfig(), model );
-                var languageInfos = detector.DetectLanguage( "\r\n[.....push enter for continue.....]" );
-                Console.WriteLine( string.Join( ", ", languageInfos.Select( i => $"{i.Language}, {i.Weight}, {i.Percent} %" ) ) );
-
-                Console.Write( "disposing language model..." );
-            }
             GCCollect();
-            Console.WriteLine( "end" );
+
+            Console.WriteLine( $"Model.RecordCount: {env.Model.RecordCount}\r\n" );
+
+            var text = "[.....push enter for continue.....]";
+            var languageInfos = detector.DetectLanguage( text );
+            languageInfos.Print2Console( text );
+        }
+        private static void Run_4_Files( string path )
+        {
+            using var env = MLanguageDetectorEnvironment_BinaryNative.Create();
+            var detector = env.CreateMDetector();
+
+            var n = 0;
+            foreach ( var fn in EnumerateAllFiles( path ) )
+            {
+                var text = File.ReadAllText( fn ).Cut( 10_000_000 );
+
+                var languageInfos = detector.DetectLanguage( text );
+
+                Console_Write( $"{++n}.) ", ConsoleColor.DarkGray );
+                languageInfos.Print2Console( text );
+            }
         }
 
         private static void Test__MModelClassic()
         {
-            var sw = Stopwatch.StartNew();            
-            using ( var model = new MModelClassic( Config.Inst.GetMModelConfig() ) )
-            {
-                var count = model.RecordCount;
-                sw.Stop();
+            using var env = MLanguageDetectorEnvironment_Classic.Create();
+            var detector = env.CreateMDetector();
 
-                GCCollect();
-                Console.WriteLine( "elapsed: " + sw.Elapsed + ", count: " + count );
-
-                Console.ForegroundColor = ConsoleColor.DarkGray; Console.WriteLine( "\r\n[.....push enter for continue.....]" ); Console.ResetColor();
-                Console.ReadLine();
-
-                //*
-                var detector = new MDetector( Config.Inst.GetMDetectorConfig(), model );
-                var languageInfos = detector.DetectLanguage( "\r\n[.....push enter for continue.....]" );
-                //*/
-
-                Console.Write( "disposing language model..." );
-            }
             GCCollect();
-            Console.WriteLine( "end" );
+
+            Console.WriteLine( $"Model.RecordCount: {env.Model.RecordCount}\r\n" );
+
+            var text = "[.....push enter for continue.....]";
+            var languageInfos = detector.DetectLanguage( text );
+            languageInfos.Print2Console( text );
+        }
+
+        private static void Print2Console( this IList< LanguageInfo > languageInfos, string text )
+        {
+            Console.Write( $"text: " );
+            Console_WriteLine( $"'{text.Cut().Norm()}'", ConsoleColor.DarkGray );
+            if ( languageInfos.Any() )
+                Console.WriteLine( "  " + string.Join( "\r\n  ", string.Join( ", ", languageInfos.Select( i => $"{i.Language}, {i.Percent} %" ) ) ) );
+            else
+                Console_WriteLine( "  [text language is not defined]", ConsoleColor.DarkRed );
+            Console.WriteLine();
+        }
+
+        private static IEnumerable< string > EnumerateAllFiles( string path, string searchPattern = "*.txt" )
+        {
+            try
+            {
+                var seq = Directory.EnumerateDirectories( path ).SafeWalk()
+                                   .SelectMany( _path => EnumerateAllFiles( _path ) );
+                return (seq.Concat( Directory.EnumerateFiles( path, searchPattern )/*.SafeWalk()*/ ));
+            }
+            catch ( Exception ex )
+            {
+                Debug.WriteLine( ex.GetType().Name + ": '" + ex.Message + '\'' );
+                return (Enumerable.Empty< string >());
+            }
+        }
+
+        private static void Console_Write( string msg, ConsoleColor color )
+        {
+            var fc = Console.ForegroundColor;
+            Console.ForegroundColor = color;
+            Console.Write( msg );
+            Console.ForegroundColor = fc;
+        }
+        private static void Console_WriteLine( string msg, ConsoleColor color )
+        {
+            var fc = Console.ForegroundColor;
+            Console.ForegroundColor = color;
+            Console.WriteLine( msg );
+            Console.ForegroundColor = fc;
         }
 
         private static void GCCollect()
@@ -220,6 +141,50 @@ namespace lingvo.ld.TestApp
             GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced );
             GC.WaitForPendingFinalizers();
             GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced );
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    internal static class Extensions
+    {
+        public static string Cut( this string s, int max_len = 150 ) => (max_len < s.Length) ? s.Substring( 0, max_len ) + "..." : s;
+        public static string Norm( this string s )
+        {
+            s = s.Replace( '\n', ' ' ).Replace( '\r', ' ' ).Replace( '\t', ' ' );
+            for (; ; )
+            {
+                var t = s.Replace( "  ", " " );
+                if ( t == s )
+                {
+                    break;
+                }
+                s = t;
+            }
+            return (s);
+        }
+        public static bool IsNullOrEmpty( this string value ) => string.IsNullOrEmpty( value );
+        public static IEnumerable< T > SafeWalk< T >( this IEnumerable< T > source )
+        {
+            using ( var enumerator = source.GetEnumerator() )
+            {
+                for ( ; ; )
+                {
+                    try
+                    {
+                        if ( !enumerator.MoveNext() )
+                            break;
+                    }
+                    catch ( Exception ex )
+                    {
+                        Debug.WriteLine( ex.GetType().Name + ": '" + ex.Message + '\'' );
+                        continue;
+                    }
+
+                    yield return (enumerator.Current);
+                }
+            }
         }
     }
 }

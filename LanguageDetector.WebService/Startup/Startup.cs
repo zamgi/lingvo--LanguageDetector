@@ -57,6 +57,17 @@ namespace lingvo.ld
             app.UseAuthorization();
 
             app.UseEndpoints( endpoints => endpoints.MapControllers() );
+
+            const string INDEX_PAGE_PATH = "/index.html";
+            app.Use( async (ctx, next) =>
+            {
+                await next( ctx );
+                
+                if ( (ctx.Response.StatusCode == 404) && (ctx.Request.Path == INDEX_PAGE_PATH) )
+                {
+                    ctx.Response.Redirect( INDEX_PAGE_PATH );
+                }
+            });
 #if DEBUG
             //-------------------------------------------------------------//
             OpenBrowserIfRunAsConsole( app );

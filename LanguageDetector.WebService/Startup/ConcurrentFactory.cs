@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+
 using lingvo.ld.MultiLanguage;
 using lingvo.ld.RussianLanguage;
 
@@ -11,25 +12,31 @@ namespace lingvo.ld
     /// 
     /// </summary>
 	public sealed class ConcurrentFactory : ILanguageDetector
-	{
+    {
 		private readonly int                         _InstanceCount;		
         private SemaphoreSlim                        _Semaphore;
         private ConcurrentStack< ILanguageDetector > _Stack;
 
-        public ConcurrentFactory( MDetectorConfig config, IMModel model, int instanceCount )
-		{
+        public static ConcurrentFactory Create< T >( MLanguageDetectorEnvironmentBase< T > env, int instanceCount ) where T : IMModel
+        {
+            if ( env == null )        throw (new ArgumentNullException( nameof(env) ));
             if ( instanceCount <= 0 ) throw (new ArgumentException( nameof(instanceCount) ));
-            if ( config == null     ) throw (new ArgumentNullException( nameof(config) ));
-            if ( model  == null     ) throw (new ArgumentNullException( nameof(model) ));
 
+            var stack = new ConcurrentStack< ILanguageDetector >();
+			for ( int i = 0; i < instanceCount; i++ )
+			{
+                stack.Push( env.CreateMDetector() );
+			}
+
+           return (new ConcurrentFactory( stack, instanceCount ));
+        }
+        private ConcurrentFactory( ConcurrentStack< ILanguageDetector > stack, int instanceCount ) 
+        { 
             _InstanceCount = instanceCount;
             _Semaphore     = new SemaphoreSlim( _InstanceCount, _InstanceCount );
-            _Stack         = new ConcurrentStack< ILanguageDetector >();
-			for ( int i = 0; i < _InstanceCount; i++ )
-			{
-                _Stack.Push( new MDetector( config, model ) );
-			}
-		}
+            _Stack         = stack;
+        }
+
         public ConcurrentFactory( RDetectorConfig config, IRModel model, int instanceCount )
         {
             if ( instanceCount <= 0 ) throw (new ArgumentException( nameof(instanceCount) ));

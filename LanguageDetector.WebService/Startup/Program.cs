@@ -8,9 +8,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.EventLog;
 
-using lingvo.ld.MultiLanguage;
-using lingvo.ld.RussianLanguage;
-
 namespace lingvo.ld
 {
     /// <summary>
@@ -27,17 +24,10 @@ namespace lingvo.ld
             try
             {
                 //---------------------------------------------------------------//
-                #region [.load language-model.]
-                Console.Write( "load model..." );
-                var sw = Stopwatch.StartNew();
+                var opts = new Config();
+                using var env = MLanguageDetectorEnvironment_BinaryNative.Create( opts );
 
-                var config      = Config.Inst.GetMDetectorConfig();
-                var modelConfig = Config.Inst.GetMModelBinaryNativeConfig();
-                using var model = new MModelBinaryNative( modelConfig );
-
-                Console.WriteLine( $"elapsed: {sw.StopElapsed()}\r\n" ); 
-
-                using var concurrentFactory = new ConcurrentFactory( config, model, Config.Inst.CONCURRENT_FACTORY_INSTANCE_COUNT );
+                using var concurrentFactory = ConcurrentFactory.Create( env, opts.CONCURRENT_FACTORY_INSTANCE_COUNT );
 
                 /*
                 var config      = Config.Inst.GetRDetectorConfig();
@@ -46,7 +36,6 @@ namespace lingvo.ld
 
                 var concurrentFactory = new ConcurrentFactory( config, model, Config.Inst.CONCURRENT_FACTORY_INSTANCE_COUNT );
                 */
-                #endregion
                 //---------------------------------------------------------------//
 
                 var host = Host.CreateDefaultBuilder( args )

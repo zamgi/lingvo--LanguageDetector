@@ -232,17 +232,10 @@ namespace lingvo.urls
 
                         //-colon-
                         case ':':
-                        #region
-                        {
-#if DEBUG
-var xxx = new string( _Ptr - 25, 0, 100 );
-#endif
                             if ( TryAllocateUrl_ByURIschemes() )
                             {
                                 _Urls.Add( _Url.create_copy() );
                             }
-                        }
-                        #endregion
                         break;
                     }
                 }
@@ -281,9 +274,6 @@ var xxx = new string( _Ptr - 25, 0, 100 );
                     case ':':
                     #region
                     {
-#if DEBUG
-var xxx = new string( _Ptr - 25, 0, 100 );
-#endif
                         if ( TryAllocateUrl_ByURIschemes() )
                         {
                             _Urlstructs.Add( _Url.to_url_struct( _base ) );
@@ -332,9 +322,6 @@ var xxx = new string( _Ptr - 25, 0, 100 );
                 #region
                 {
                     _Ptr = ptr;
-#if DEBUG
-var xxx = new string( _Ptr - 25, 0, 100 );
-#endif
                     if ( TryAllocateUrl_ByURIschemes() )
                     {
                         return (_Url);
@@ -351,9 +338,6 @@ var xxx = new string( _Ptr - 25, 0, 100 );
             #region [.must by (*ptr == ':').]
             {
                 _Ptr = ptr;
-#if DEBUG
-var xxx = new string( _Ptr - 25, 0, 100 );
-#endif
                 if ( TryAllocateUrl_ByURIschemes() )
                 {
                     return (_Url.create_copy());
@@ -412,9 +396,6 @@ var xxx = new string( _Ptr - 25, 0, 100 );
                 #region
                 {
                     _Ptr = ptr;
-#if DEBUG
-var xxx = new string( _Ptr - 25, 0, 100 );
-#endif
                     if ( TryAllocateUrl_ByURIschemes() )
                     {
                         return (_Url.to_url_struct( _BASE ));
@@ -431,9 +412,6 @@ var xxx = new string( _Ptr - 25, 0, 100 );
             #region [.must by (*ptr == ':').]
             {
                 _Ptr = ptr;
-#if DEBUG
-var xxx = new string( _Ptr - 25, 0, 100 );
-#endif
                 if ( TryAllocateUrl_ByURIschemes() )
                 {
                     return (_Url.to_url_struct( _BASE ));
@@ -490,9 +468,6 @@ var xxx = new string( _Ptr - 25, 0, 100 );
 
             #region [.create url_t.]
             var left_ptr = _Ptr - WWW_LENGTH;
-#if DEBUG
-var xxx = new string( left_ptr - 25, 0, 75 );
-#endif
             var length = WWW_LENGTH + 1 + right_len;
             _Url.startIndex = (int) (left_ptr - _BASE);
             _Url.length     = length;
@@ -558,9 +533,6 @@ var xxx = new string( left_ptr - 25, 0, 75 );
             #region [.find-url-end-on-the-right.]
             if ( xlat.IsDot( ch ) )
             {
-#if DEBUG
-var xxx1 = new string( _Ptr - 25, 0, 75 );
-#endif
                 var safe_Ptr = _Ptr;
                 _Ptr += right_len;
                 var res = TryAllocateUrl_ByFirstLevelDomain( maxRecursionNesting-- );
@@ -589,9 +561,6 @@ var xxx1 = new string( _Ptr - 25, 0, 75 );
 
             #region [.create url_t.]
             var left_ptr = _Ptr - left_len;
-#if DEBUG
-var xxx = new string( left_ptr - 25, 0, 75 );
-#endif
             var length = left_len + 1 + right_len;
             _Url.startIndex = (int) (left_ptr - _BASE);
             _Url.length     = length;
@@ -653,9 +622,6 @@ var xxx = new string( left_ptr - 25, 0, 75 );
 
             #region [.create url_t.]
             var left_ptr = _Ptr - left_len;
-#if DEBUG
-var xxx = new string( left_ptr - 25, 0, 75 );
-#endif
             var length = left_len + 1 + right_len;
             _Url.startIndex = (int) (left_ptr - _BASE);
             _Url.length     = length;
