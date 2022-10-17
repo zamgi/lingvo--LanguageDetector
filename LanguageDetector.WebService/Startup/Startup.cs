@@ -24,7 +24,7 @@ namespace lingvo.ld
     /// </summary>
     internal sealed class Startup
     {
-        public void ConfigureServices( IServiceCollection services )
+        public static void ConfigureServices( IServiceCollection services )
         {
             services.AddControllers().AddJsonOptions( options =>
             {
@@ -42,7 +42,7 @@ namespace lingvo.ld
             });
         }
 
-        public void Configure( IApplicationBuilder app, IWebHostEnvironment env )
+        public static void Configure( IApplicationBuilder app, IWebHostEnvironment env )
         {
             if ( env.IsDevelopment() )
             {
@@ -57,8 +57,8 @@ namespace lingvo.ld
             app.UseAuthorization();
 
             app.UseEndpoints( endpoints => endpoints.MapControllers() );
-            //-------------------------------------------------------------//
 #if DEBUG
+            //-------------------------------------------------------------//
             OpenBrowserIfRunAsConsole( app );
 #endif            
         }

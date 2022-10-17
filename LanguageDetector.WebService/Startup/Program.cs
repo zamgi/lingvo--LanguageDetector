@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Hosting;
@@ -27,8 +26,6 @@ namespace lingvo.ld
             var logger                  = default(ILogger);
             try
             {
-                //---Encoding.RegisterProvider( CodePagesEncodingProvider.Instance );
-
                 //---------------------------------------------------------------//
                 #region [.load language-model.]
                 Console.Write( "load model..." );
