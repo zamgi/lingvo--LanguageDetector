@@ -79,7 +79,7 @@ namespace lingvo.ld.MultiLanguage
                 var pairsBytePtr = (byte*) weighByLanguagesBasePtr;
                 _CountBuckets    = *pairsBytePtr++;
                 _WeighByLanguagesPtr = (WeighByLanguage*) pairsBytePtr;
-                _Current = default(WeighByLanguage);
+                _Current = default;
             }
 
             public WeighByLanguage Current => _Current;

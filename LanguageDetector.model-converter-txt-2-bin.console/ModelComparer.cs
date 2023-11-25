@@ -206,7 +206,7 @@ namespace lingvo.ld.modelconverter
         public static string ToText( this IntPtr value ) => ToText( (char*) value );
         public static string ToText( this IntPtr value, int length ) => ToText( (char*) value, length );
 
-        public static LanguageWeightPair[] ToLanguageWeightPairs( this WeighByLanguageNative wbln )
+        public static LanguageWeightPair[] ToLanguageWeightPairs( this in WeighByLanguageNative wbln )
         {
             var array = new LanguageWeightPair[ wbln.CountBuckets ];
             for ( var i = 0; i < wbln.CountBuckets; i++ )

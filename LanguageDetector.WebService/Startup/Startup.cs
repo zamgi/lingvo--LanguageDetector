@@ -42,6 +42,7 @@ namespace lingvo.ld
             });
         }
 
+        private const string INDEX_PAGE_PATH = "/index.html";
         public static void Configure( IApplicationBuilder app, IWebHostEnvironment env )
         {
             if ( env.IsDevelopment() )
@@ -57,8 +58,7 @@ namespace lingvo.ld
             app.UseAuthorization();
 
             app.UseEndpoints( endpoints => endpoints.MapControllers() );
-
-            const string INDEX_PAGE_PATH = "/index.html";
+            
             app.Use( async (ctx, next) =>
             {
                 await next( ctx );
@@ -94,7 +94,7 @@ namespace lingvo.ld
                 {
                     address = address.Replace( "/*:", "/localhost:" );
 
-                    using ( Process.Start( new ProcessStartInfo( address.TrimEnd( '/' ) + "/index.html" ) { UseShellExecute = true } ) ) { };
+                    using ( Process.Start( new ProcessStartInfo( address.TrimEnd( '/' ) + INDEX_PAGE_PATH ) { UseShellExecute = true } ) ) { };
                 }                
             }
             #endregion

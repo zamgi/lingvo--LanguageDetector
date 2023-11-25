@@ -110,13 +110,12 @@ namespace lingvo.ld.TestApp
         {
             try
             {
-                var seq = Directory.EnumerateDirectories( path ).SafeWalk()
-                                   .SelectMany( _path => EnumerateAllFiles( _path ) );
+                var seq = Directory.EnumerateDirectories( path ).SafeWalk().SelectMany( path => EnumerateAllFiles( path ) );
                 return (seq.Concat( Directory.EnumerateFiles( path, searchPattern )/*.SafeWalk()*/ ));
             }
             catch ( Exception ex )
             {
-                Debug.WriteLine( ex.GetType().Name + ": '" + ex.Message + '\'' );
+                Debug.WriteLine( $"{ex.GetType().Name}: '{ex.Message}'" );
                 return (Enumerable.Empty< string >());
             }
         }
@@ -169,7 +168,7 @@ namespace lingvo.ld.TestApp
         {
             using ( var enumerator = source.GetEnumerator() )
             {
-                for ( ; ; )
+                for (; ; )
                 {
                     try
                     {
@@ -178,7 +177,7 @@ namespace lingvo.ld.TestApp
                     }
                     catch ( Exception ex )
                     {
-                        Debug.WriteLine( ex.GetType().Name + ": '" + ex.Message + '\'' );
+                        Debug.WriteLine( $"{ex.GetType().Name}: '{ex.Message}'" );
                         continue;
                     }
 

@@ -63,9 +63,9 @@ namespace lingvo.core.algorithm
         /// <summary>
         /// 
         /// </summary>
-        public sealed class result
+        public sealed class Result
         {
-            internal result( string[] words, float[][] tfidf )
+            internal Result( string[] words, float[][] tfidf )
             {
                 Words = words;
                 TFiDF = tfidf;
@@ -263,7 +263,7 @@ namespace lingvo.core.algorithm
         public bool CurrentDocumentHasWords => (_DocumentWordCount != 0);
         #endregion
 
-        unsafe public result Process()
+        unsafe public Result Process()
         {
             var docCount  = _DocWordsList.Count;
             var wordCount = _WordsByDocsHashset.Count;
@@ -361,7 +361,7 @@ namespace lingvo.core.algorithm
 
             GC.Collect();
 
-            return (new result( tfidf_words, tfidf_matrix ));
+            return (new Result( tfidf_words, tfidf_matrix ));
         }
         public Dictionary< string, float > ProcessOneDimension( int realDocCount )
         {
@@ -432,7 +432,7 @@ namespace lingvo.core.algorithm
 
             return (resultDict);
         }
-        public result Process_BM25()
+        public Result Process_BM25()
         {
             /*
             Создать функцию bool tfidf_TFiDF_BM25_cpp, аналогичную bool tfidf_TFiDF_cpp за исключением расчета самого веса 
@@ -453,7 +453,7 @@ namespace lingvo.core.algorithm
             
             var tf_matrix = Create2DemensionMatrix( wordCount, docCount );
             var tfidf_words = new string[ wordCount ];
-            var idf_matrix         = new float [ wordCount ];            
+            var idf_matrix  = new float [ wordCount ];            
             int wordNumber  = 0;            
             foreach ( var w in _WordsByDocsHashset )
             {
@@ -506,9 +506,9 @@ namespace lingvo.core.algorithm
 
             GC.Collect();
             
-            return (new result( tfidf_words, tfidf_matrix ));
+            return (new Result( tfidf_words, tfidf_matrix ));
         }
-        public result Process_R()
+        public Result Process_R()
         {
             /*
             Создать функцию bool tfidf_RTFiDF_cpp, аналогичную bool tfidf_TFiDF_cpp за исключением расчета самого веса 
@@ -526,7 +526,7 @@ namespace lingvo.core.algorithm
             
             var tf_matrix = Create2DemensionMatrix( wordCount, docCount );
             var tfidf_words = new string[ wordCount ];
-            var idf_matrix         = new float [ wordCount ];            
+            var idf_matrix  = new float [ wordCount ];            
             int wordNumber  = 0;            
             foreach ( var w in _WordsByDocsHashset )
             {
@@ -588,7 +588,7 @@ namespace lingvo.core.algorithm
 
             GC.Collect();
 
-            return (new result( tfidf_words, tfidf_matrix ));
+            return (new Result( tfidf_words, tfidf_matrix ));
         }
             
         private Dictionary< string, int > FillByNgrams( IList< string > words )

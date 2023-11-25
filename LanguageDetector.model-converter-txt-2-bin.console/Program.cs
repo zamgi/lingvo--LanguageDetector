@@ -37,12 +37,12 @@ namespace lingvo.ld.modelconverter
 
                 #region [.print to console config.]
                 Console.WriteLine(Environment.NewLine + "----------------------------------------------");
-                Console.WriteLine( "      LANGUAGE_MODELS_FOLDER: '" + Config.Inst.LANGUAGE_MODELS_FOLDER + "'" );
-                Console.WriteLine( "ML_MODEL_DICTIONARY_CAPACITY: '" + Config.Inst.ML_MODEL_DICTIONARY_CAPACITY + "'" );
-                Console.WriteLine( "            OUTPUT_FILE_NAME: '" + Config.Inst.OUTPUT_FILE_NAME + "'" );
+                Console.WriteLine( $"      LANGUAGE_MODELS_FOLDER: '{Config.Inst.LANGUAGE_MODELS_FOLDER}'" );
+                Console.WriteLine( $"ML_MODEL_DICTIONARY_CAPACITY: '{Config.Inst.ML_MODEL_DICTIONARY_CAPACITY}'" );
+                Console.WriteLine( $"            OUTPUT_FILE_NAME: '{Config.Inst.OUTPUT_FILE_NAME}'" );
                 if ( Config.Inst.OUTPUT_FILE_SIZE_IN_BYTES != 0 )
                 {
-                Console.WriteLine( "   OUTPUT_FILE_SIZE_IN_BYTES: '" + Config.Inst.OUTPUT_FILE_SIZE_IN_BYTES + "'" );
+                Console.WriteLine( $"   OUTPUT_FILE_SIZE_IN_BYTES: '{Config.Inst.OUTPUT_FILE_SIZE_IN_BYTES}'" );
                 }
 				Console.WriteLine("----------------------------------------------" + Environment.NewLine);
                 #endregion
@@ -86,7 +86,7 @@ namespace lingvo.ld.modelconverter
             Console.WriteLine( " --------------" );
             for ( var i = 0; i < outputFileNames.Count; i++ )
             {
-                Console.WriteLine( ' '  + (i + 1).ToString() + "). '" + outputFileNames[ i ] + '\'' );
+                Console.WriteLine( $" {i + 1}). '{outputFileNames[ i ]}'" );
             }
             Console.WriteLine( " --------------\r\n" );
         }
@@ -100,7 +100,7 @@ namespace lingvo.ld.modelconverter
             {
                 sw.Stop();
 
-                Console.WriteLine( "elapsed: " + sw.Elapsed + ", record-count: " + model.RecordCount );
+                Console.WriteLine( $"elapsed: {sw.Elapsed}, record-count: {model.RecordCount}" );
                 Console.ReadLine();
             }
 

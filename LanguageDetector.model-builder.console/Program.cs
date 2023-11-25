@@ -278,8 +278,7 @@ namespace lingvo.ld.modelbuilder
                 _Bp = bp;
                 _Fi = fi;
 
-                _OutputFilenames  = new Dictionary< NGramsEnum, List< string > >();
-                _OutputFilenames.Add( NGramsEnum.ngram_1, new List< string >() );
+                _OutputFilenames  = new Dictionary< NGramsEnum, List< string > > { { NGramsEnum.ngram_1, new List< string >() } };
                 _DocumentNgrams_1 = new Dictionary< string, int >( _Bp.MaxPortionSize, word_comparer.Inst );
 
                 switch ( _Bp.Ngrams )
@@ -320,11 +319,11 @@ namespace lingvo.ld.modelbuilder
                         if ( _Word_prev3 != null )
                         {
                             _DocumentNgrams_4.AddOrUpdate( _Buf.Clear()
-                                                              .Append( _Word_prev3 ).Append( ' ' )
-                                                              .Append( _Word_prev2 ).Append( ' ' )
-                                                              .Append( _Word_prev1 ).Append( ' ' )
-                                                              .Append( word )
-                                                              .ToString() 
+                                                               .Append( _Word_prev3 ).Append( ' ' )
+                                                               .Append( _Word_prev2 ).Append( ' ' )
+                                                               .Append( _Word_prev1 ).Append( ' ' )
+                                                               .Append( word )
+                                                               .ToString() 
                                                          );                        
                         }
                         _Word_prev3 = _Word_prev2;
@@ -335,10 +334,10 @@ namespace lingvo.ld.modelbuilder
                         if ( _Word_prev2 != null )
                         {
                             _DocumentNgrams_3.AddOrUpdate( _Buf.Clear()
-                                                              .Append( _Word_prev2 ).Append( ' ' )
-                                                              .Append( _Word_prev1 ).Append( ' ' )
-                                                              .Append( word )
-                                                              .ToString() 
+                                                               .Append( _Word_prev2 ).Append( ' ' )
+                                                               .Append( _Word_prev1 ).Append( ' ' )
+                                                               .Append( word )
+                                                               .ToString() 
                                                          );                        
                         }
                         _Word_prev2 = _Word_prev1;
@@ -349,9 +348,9 @@ namespace lingvo.ld.modelbuilder
                         if ( _Word_prev1 != null )
                         {
                             _DocumentNgrams_2.AddOrUpdate( _Buf.Clear()
-                                                              .Append( _Word_prev1 ).Append( ' ' )
-                                                              .Append( word )
-                                                              .ToString() 
+                                                               .Append( _Word_prev1 ).Append( ' ' )
+                                                               .Append( word )
+                                                               .ToString() 
                                                          );                        
                         }
                         _Word_prev1 = word;
@@ -379,11 +378,11 @@ namespace lingvo.ld.modelbuilder
                         if ( _Word_prev3 != null )
                         {
                             _DocumentNgrams_4.AddOrUpdate( _Buf.Clear()
-                                                              .Append( _Word_prev3 ).Append( ' ' )
-                                                              .Append( _Word_prev2 ).Append( ' ' )
-                                                              .Append( _Word_prev1 ).Append( ' ' )
-                                                              .Append( word )
-                                                              .ToString() 
+                                                               .Append( _Word_prev3 ).Append( ' ' )
+                                                               .Append( _Word_prev2 ).Append( ' ' )
+                                                               .Append( _Word_prev1 ).Append( ' ' )
+                                                               .Append( word )
+                                                               .ToString() 
                                                          );                        
                         }
                         _Word_prev3 = _Word_prev2;
@@ -394,10 +393,10 @@ namespace lingvo.ld.modelbuilder
                         if ( _Word_prev2 != null )
                         {
                             _DocumentNgrams_3.AddOrUpdate( _Buf.Clear()
-                                                              .Append( _Word_prev2 ).Append( ' ' )
-                                                              .Append( _Word_prev1 ).Append( ' ' )
-                                                              .Append( word )
-                                                              .ToString() 
+                                                               .Append( _Word_prev2 ).Append( ' ' )
+                                                               .Append( _Word_prev1 ).Append( ' ' )
+                                                               .Append( word )
+                                                               .ToString() 
                                                          );                        
                         }
                         _Word_prev2 = _Word_prev1;
@@ -408,9 +407,9 @@ namespace lingvo.ld.modelbuilder
                         if ( _Word_prev1 != null )
                         {
                             _DocumentNgrams_2.AddOrUpdate( _Buf.Clear()
-                                                              .Append( _Word_prev1 ).Append( ' ' )
-                                                              .Append( word )
-                                                              .ToString() 
+                                                               .Append( _Word_prev1 ).Append( ' ' )
+                                                               .Append( word )
+                                                               .ToString() 
                                                          );                        
                         }
                         _Word_prev1 = word;
@@ -533,14 +532,14 @@ namespace lingvo.ld.modelbuilder
                     }
 
                     //-2-
-                    outputFilenames.ForEach( outputFilename => File.Delete( outputFilename ) );
+                    outputFilenames.ForEach( File.Delete );
                     outputFilenames = _OutputFilenames[ ngram ];
                     var tuples = CreateTuples( outputFilenames );
                     ss = _Tfidf.CreateSortedSetAndCutIfNeed( GroupByMerging_2( tuples ), ngram, sum );
 
                     //-3-
                     tuples.ForEach( tuple => tuple.Dispose() );
-                    outputFilenames.ForEach( outputFilename => File.Delete( outputFilename ) );
+                    outputFilenames.ForEach( File.Delete );
                     _Tfidf.AddDocumentWords( ss );
                 }
             }
@@ -571,7 +570,7 @@ namespace lingvo.ld.modelbuilder
 
                         if ( (_OutputFilenames[ NGramsEnum.ngram_1 ].Count == 0) && (_DocumentNgrams_1.Count == 0) )
                         {
-                            throw (new InvalidDataException( "input text is-null-or-white-space, filename: '" + _Fi.FullName + '\'' ));
+                            throw (new InvalidDataException( $"input text is-null-or-white-space, filename: '{_Fi.FullName}'." ));
                         }
                     }
 
@@ -701,8 +700,8 @@ namespace lingvo.ld.modelbuilder
 
             private static string Write2File( FileInfo fi, int portionNumber, Dictionary< string, int > tf_matrix, NGramsEnum tf_matrix_type )
             {
-                var outputFilename = Path.Combine( fi.DirectoryName, "temp", fi.Name + '.' + tf_matrix_type.ToString() + '.' + portionNumber.ToString() );
-                Console.Write( "start write portion-file: '" + outputFilename + "'..." );
+                var outputFilename = Path.Combine( fi.DirectoryName, "temp", $"{fi.Name}.{tf_matrix_type}.{portionNumber}" );
+                Console.Write( $"start write portion-file: '{outputFilename}'..." );
 
                 var ss = new SortedDictionary< string, int >( word_comparer.Inst );
                 foreach ( var p in tf_matrix )
@@ -720,7 +719,8 @@ namespace lingvo.ld.modelbuilder
                 {
                     foreach ( var p in ss )
                     {
-                        sw.WriteLine( p.Key + '\t' + p.Value );
+                        //---sw.WriteLine( p.Key + '\t' + p.Value );
+                        sw.Write( p.Key ); sw.Write( '\t' ); sw.WriteLine( p.Value );
                     }
                 }
                 ss.Clear();
@@ -732,8 +732,8 @@ namespace lingvo.ld.modelbuilder
             }
             private static string Write2File( FileInfo fi, int portionNumber, SortedSet< word_t > ss, NGramsEnum ss_type )
             {
-                var outputFilename = Path.Combine( fi.DirectoryName, "temp", fi.Name + ".ss." + ss_type.ToString() + '.' + portionNumber.ToString() );
-                Console.Write( "start write portion-file: '" + outputFilename + "'..." );
+                var outputFilename = Path.Combine( fi.DirectoryName, "temp", $"{fi.Name}.ss.{ss_type}.{portionNumber}" );
+                Console.Write( $"start write portion-file: '{outputFilename}'..." );
 
                 var ofi = new FileInfo( outputFilename );
                 if ( !ofi.Directory.Exists )
@@ -744,7 +744,8 @@ namespace lingvo.ld.modelbuilder
                 {
                     foreach ( var word in ss )
                     {
-                        sw.WriteLine( word.Value + '\t' + word.Count );
+                        //---sw.WriteLine( word.Value + '\t' + word.Count );
+                        sw.Write( word.Value ); sw.Write( '\t' ); sw.WriteLine( word.Count );
                     }
                 }
                 ss.Clear();
